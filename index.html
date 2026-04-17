@@ -37,6 +37,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
     padding: 16px 24px 20px;
   }
 
@@ -1430,6 +1431,41 @@
     .position-btn { width: 78px; height: 78px; font-size: 18px; border-width: 2px; }
     .title-group h1 { font-size: 20px; }
     #app { padding: 12px 16px 16px; }
+  }
+
+  /* ── Phone-only (≤430px) ──────────────────────────────────── */
+  @media (max-width: 430px) {
+    #app { padding: 6px 10px 8px; }
+
+    header.top {
+      align-items: flex-start;
+      gap: 8px;
+      padding-bottom: 6px;
+    }
+
+    .title-group { gap: 3px; }
+    .title-group h1 { font-size: 16px; }
+
+    .setting-toggle { font-size: 10px; gap: 5px; }
+    .setting-toggle input[type="checkbox"] { width: 24px; height: 14px; }
+    .setting-toggle input[type="checkbox"]::after { width: 10px; height: 10px; }
+    .setting-toggle input[type="checkbox"]:checked::after { left: 12px; }
+
+    .toolbar { gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .format-picker button { padding: 6px 12px; font-size: 12px; }
+
+    #pack-picker { min-width: 0; width: 100%; padding: 7px 28px 7px 10px; font-size: 12px; }
+
+    #help-btn { width: 28px; height: 28px; font-size: 14px; }
+
+    .breadcrumb { min-height: 30px; }
+    .breadcrumb .segment { font-size: 12px; padding: 5px 10px; }
+
+    .controls { gap: 8px; padding-top: 4px; }
+    .controls button { padding: 10px 12px; font-size: 13px; }
+
+    .position-btn { width: 62px; height: 62px; font-size: 15px; }
   }
 
 
