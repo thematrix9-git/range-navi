@@ -1145,7 +1145,9 @@
   }
   /* Shared tweaks for the two action circles — label only, no sub-text */
   .split-wide-action {
-    font-size: 15px !important;
+    width: 78px !important;
+    height: 78px !important;
+    font-size: 14px !important;
     font-weight: 700 !important;
     letter-spacing: 0.02em;
   }
@@ -1174,8 +1176,8 @@
     left: var(--x);
     top:  var(--y);
     transform: translate(-50%, -50%);
-    width: 96px;
-    height: 96px;
+    width: 78px;
+    height: 78px;
     border-radius: 50%;
     display: flex;
     overflow: hidden;
@@ -1429,6 +1431,8 @@
 
   @media (max-width: 820px) {
     .position-btn { width: 78px; height: 78px; font-size: 18px; border-width: 2px; }
+    .split-wide-action { width: 64px !important; height: 64px !important; font-size: 12px !important; }
+    .split-pos-wrap { width: 64px; height: 64px; }
     .title-group h1 { font-size: 20px; }
     #app { padding: 12px 16px 16px; }
   }
@@ -1466,6 +1470,8 @@
     .controls button { padding: 10px 12px; font-size: 13px; }
 
     .position-btn { width: 62px; height: 62px; font-size: 15px; }
+    .split-wide-action { width: 50px !important; height: 50px !important; font-size: 11px !important; }
+    .split-pos-wrap { width: 50px; height: 50px; }
   }
 
 
@@ -1594,50 +1600,55 @@
           <thead>
             <tr>
               <th>Situation</th>
-              <th>File Name Pattern</th>
               <th>Examples</th>
+              <th>File Name Pattern</th>
             </tr>
           </thead>
           <tbody>
             <tr>
               <td><strong>RFI</strong><br>(opening)</td>
-              <td><code>Position.png</code></td>
               <td><code>UTG.png</code><br><code>BTN.png</code></td>
+              <td><code>Position.png</code></td>
             </tr>
             <tr>
               <td><strong>3B</strong><br>(we open, opponent 3bets)</td>
-              <td><code>Actor_3B-Opener(-size).png</code></td>
               <td><code>BTN_3B-CO.png</code><br><code>BTN_3B-CO-7bb.png</code></td>
+              <td><code>Actor_3B-Opener(-size).png</code></td>
+            </tr>
+            <tr>
+              <td><strong>CC</strong><br>(cold call an open)</td>
+              <td><code>BTN_CC-UTG.png</code><br><code>SB_CC-BTN.png</code></td>
+              <td><code>Caller_CC-Opener(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>vs 3B</strong><br>(we opened, opponent 3bet)</td>
-              <td><code>Actor-Opener_3B(-size).png</code></td>
               <td><code>UTG-CO_3B.png</code><br><code>UTG-CO_3B-22bb.png</code></td>
+              <td><code>Actor-Opener_3B(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>4B</strong><br>(in a 3bet pot, we 4bet)</td>
-              <td><code>Actor_4B-Opponent(-size).png</code></td>
               <td><code>UTG_4B-BTN.png</code><br><code>UTG_4B-BTN-22bb.png</code></td>
+              <td><code>Actor_4B-Opponent(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>vs 4B</strong><br>(in a 3bet pot, opponent 4bets)</td>
-              <td><code>Actor-Opponent_4B(-size).png</code></td>
               <td><code>BTN-UTG_4B.png</code><br><code>BTN-UTG_4B-23bb.png</code></td>
+              <td><code>Actor-Opponent_4B(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>C4B</strong><br>(cold 4bet, 3 players)</td>
-              <td><code>Actor_C4B-3Bpos-Opener(-size).png</code></td>
               <td><code>BB_C4B-SB-BTN.png</code><br><code>BB_C4B-SB-BTN-23bb.png</code></td>
+              <td><code>Actor_C4B-3Bpos-Opener(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>Squeeze</strong><br>(we squeeze, 2+ callers)</td>
-              <td><code>Actor_Squeeze-Caller-Opener(-size).png</code></td>
               <td><code>BB_Squeeze-BTN-UTG.png</code><br><code>BB_Squeeze-BTN-UTG-13bb.png</code></td>
+              <td><code>Actor_Squeeze-Caller-Opener(-size).png</code></td>
             </tr>
             <tr>
               <td><strong>vs Squeeze</strong><br>(opponent squeezes)</td>
-              <td><code>Actor-Caller-Squeezer_Squeeze(-size).png</code></td>
               <td><code>UTG-BTN-BB_Squeeze.png</code><br><code>UTG-BTN-BB_Squeeze-13bb.png</code></td>
+              <td><code>Actor-Caller-Squeezer_Squeeze(-size).png</code></td>
             </tr>
           </tbody>
         </table>
@@ -1931,6 +1942,24 @@ function findNode(path) {
   ) || null;
 }
 
+// Open the chart modal for a given path.
+// For 2-step CC paths (e.g. ["UTG","BTN_CC"]) there is no data.js node, so we
+// build a synthetic one — getChartsForNode handles the image lookup via the new
+// Caller_CC-Opener naming branch.
+function openChartForPath(path) {
+  let node = findNode(path);
+  if (!node && path.length === 2 && pathIsCC(path[path.length - 1])) {
+    const caller = pathPos(path[path.length - 1]);
+    const opener = pathPos(path[0]);
+    node = { path, imageFolder: caller, title: `${caller} CC vs ${opener}` };
+  }
+  if (!node) return false;
+  state.activeNode = node;
+  state.activeVariantIndex = 0;
+  openModal();
+  return true;
+}
+
 function getOverviewsForPosition(pos) {
   const pack = getCurrentPack();
   if (!pack) return [];
@@ -2033,6 +2062,14 @@ function getChartsForNode(node) {
   if (path.length === 2 && !pathIsCC(path[1])) {
     const [opener, actor] = positions;
     const base = `${actor}_3B-${opener}`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+  }
+
+  // CC (cold-call): path.length === 2, last step is _CC → Caller_CC-Opener(-size)
+  if (path.length === 2 && pathIsCC(path[1])) {
+    const [opener, caller] = positions;
+    const base = `${caller}_CC-${opener}`;
     const m = findWithSizes(base);
     if (m.length > 0) return makeCharts(m, base);
   }
@@ -2151,6 +2188,17 @@ function handlePositionTap(pos, action) {
   lastTap = { pos, time: isDouble ? 0 : now };
 
   if (isDouble) {
+    // Split-button double-tap: the first tap already pushed the step and re-rendered,
+    // replacing the split buttons with the normal position button (which may sit at a
+    // different screen position in wide mode).  Detect this by checking whether the
+    // last step in the path already belongs to this position — if so, just open the
+    // chart without pushing again.
+    const lastStep = state.currentPath[state.currentPath.length - 1];
+    if (lastStep && pathPos(lastStep) === pos) {
+      openChartForPath(state.currentPath);
+      return;
+    }
+
     // "Standalone" double-tap: this position is the only one in the path
     const isStandalone = state.currentPath.length === 1 && pathPos(state.currentPath[0]) === pos;
     if (isStandalone) {
@@ -2159,10 +2207,12 @@ function handlePositionTap(pos, action) {
       if (defOv) { openOverviewChart(defOv); return; }
     }
     // Open the chart for the full current path
-    const node = findNode(state.currentPath);
-    if (node) { state.activeNode = node; state.activeVariantIndex = 0; openModal(); }
+    openChartForPath(state.currentPath);
     return;
   }
+  // Guard: a position already in the path cannot be added again
+  if (state.currentPath.some(s => pathPos(s) === pos)) return;
+
   const step = (action === "CC") ? pos + "_CC" : pos;
   state.currentPath.push(step);
   render();
@@ -3303,7 +3353,20 @@ function init() {
   document.getElementById("reset-btn").addEventListener("click", resetPath);
 
   // Felt tap → reset (buttons call stopPropagation so only genuine felt clicks reach here)
+  // Exception: if the tap lands on the felt within the double-tap window right after a
+  // split-button tap, treat it as the second half of a double-tap rather than a reset.
+  // This handles wide-mode flanking buttons (CALL / 3B) whose screen positions shift after
+  // re-render, so the second physical tap can land on empty felt instead of a button.
   document.getElementById("table").addEventListener("click", () => {
+    const now = Date.now();
+    if (lastTap.pos && (now - lastTap.time < DOUBLE_TAP_MS)) {
+      const lastStep = state.currentPath[state.currentPath.length - 1];
+      if (lastStep && pathPos(lastStep) === lastTap.pos) {
+        lastTap = { pos: null, time: 0 };        // consume the double-tap
+        openChartForPath(state.currentPath);
+        return;
+      }
+    }
     if (!autoResetOnFeltTap) return;
     resetPath();
   });
