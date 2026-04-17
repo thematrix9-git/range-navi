@@ -1,0 +1,3315 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Range Navigator">
+<meta name="theme-color" content="#000000">
+<title>Range Navigator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    overflow: hidden;
+  }
+
+  button { font-family: inherit; }
+
+  /* Allow text selection inside manager inputs */
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 16px 24px 20px;
+  }
+
+  /* ── Header ─────────────────────────────────────────────── */
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+  }
+
+  .title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .title-group h1 {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+  }
+
+  /* "Reset path on table tap" toggle row */
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .setting-toggle {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    cursor: pointer;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+  }
+
+  /* iOS-style mini toggle switch */
+  .setting-toggle input[type="checkbox"] {
+    position: relative;
+    width: 30px;
+    height: 17px;
+    flex-shrink: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255,255,255,0.15);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .setting-toggle input[type="checkbox"]::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.65);
+    transition: left 0.18s;
+  }
+
+  .setting-toggle input[type="checkbox"]:checked {
+    background: rgba(52,199,89,0.85);
+  }
+
+  .setting-toggle input[type="checkbox"]:checked::after {
+    left: 15px;
+    background: #fff;
+  }
+
+  /* ── Toolbar ─────────────────────────────────────────────── */
+  .toolbar { display: flex; gap: 14px; align-items: center; }
+
+  .format-picker {
+    display: inline-flex;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    padding: 4px;
+  }
+
+  .format-picker button {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: none;
+    padding: 9px 22px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .format-picker button.active { background: rgba(255,255,255,0.18); color: #fff; }
+
+  .pack-picker-wrap { position: relative; }
+
+  #pack-picker {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    border: none;
+    padding: 11px 40px 11px 16px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    min-width: 180px;
+  }
+
+  .pack-picker-wrap::after {
+    content: "▾";
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ── Poker table ─────────────────────────────────────────── */
+  main { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  .table-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 12px 0;
+  }
+
+  .table {
+    position: relative;
+    width: 100%;
+    max-width: 880px;
+    aspect-ratio: 16 / 9;
+    background: radial-gradient(ellipse at center,
+      rgb(22, 102, 64) 0%,
+      rgb(10, 56, 36) 80%);
+    border-radius: 50%;
+    border: 10px solid rgba(0,0,0,0.55);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.55),
+                inset 0 0 0 2px rgba(255,255,255,0.05);
+    cursor: pointer;
+  }
+
+  /* ── Position buttons — base ─────────────────────────────── */
+  .position-btn {
+    position: absolute;
+    left: var(--x);
+    top:  var(--y);
+    transform: translate(-50%, -50%);
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgb(31, 36, 46);
+    color: #fff;
+    border: 3px solid rgba(255,255,255,0.35);
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.55);
+    transition: transform 0.08s ease, background 0.15s, border-color 0.15s, color 0.1s;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", system-ui, sans-serif;
+  }
+
+  .position-btn:active { transform: translate(-50%, -50%) scale(0.93); }
+
+  .position-btn .step { font-size: 11px; font-weight: 600; opacity: 0.9; margin-top: 2px; }
+
+  /* Pulse ring when current path has a match */
+  .position-btn.has-chart-hint::after {
+    content: "";
+    position: absolute;
+    inset: -7px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.55);
+    animation: pulse-ring 1.5s ease-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes pulse-ring {
+    0%   { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.35); }
+  }
+
+  /* ── Per-position colours ────────────────────────────────── */
+  /*  in-path = dimmer  |  last-tap = full brightness + glow   */
+
+  /* UTG — white */
+  .position-btn[data-pos="UTG"].in-path  { background: rgba(210,210,210,0.65); border-color: rgba(255,255,255,0.4); color: #111; }
+  .position-btn[data-pos="UTG"].last-tap { background: #e8e8e8; border-color: rgba(255,255,255,0.9); color: #111;
+    box-shadow: 0 0 20px rgba(255,255,255,0.4), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* MP — light blue */
+  .position-btn[data-pos="MP"].in-path  { background: rgba(80,165,255,0.65); border-color: rgba(80,165,255,0.45); }
+  .position-btn[data-pos="MP"].last-tap { background: #50a5ff; border-color: rgba(140,200,255,0.7);
+    box-shadow: 0 0 20px rgba(80,165,255,0.45), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* CO — yellow */
+  .position-btn[data-pos="CO"].in-path  { background: rgba(230,185,0,0.7); border-color: rgba(255,210,0,0.45); color: #111; }
+  .position-btn[data-pos="CO"].last-tap { background: #f0c400; border-color: rgba(255,230,80,0.8); color: #111;
+    box-shadow: 0 0 20px rgba(240,196,0,0.45), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* BTN — red (6max) / orange (HU) — HU overrides via .hu-btn class */
+  .position-btn[data-pos="BTN"].in-path  { background: rgba(195,30,30,0.8); border-color: rgba(210,40,40,0.5); }
+  .position-btn[data-pos="BTN"].last-tap { background: #c31e1e; border-color: rgba(255,80,80,0.7);
+    box-shadow: 0 0 20px rgba(195,30,30,0.5), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* BTN in heads-up mode — orange (same as SB) */
+  .position-btn[data-pos="BTN"].hu-btn.in-path  { background: rgb(180,100,0); border-color: rgba(255,149,0,0.5); }
+  .position-btn[data-pos="BTN"].hu-btn.last-tap { background: #ff9500; border-color: rgba(255,200,80,0.7);
+    box-shadow: 0 0 20px rgba(255,149,0,0.45), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* SB — dark orange */
+  .position-btn[data-pos="SB"].in-path  { background: rgb(180,100,0); border-color: rgba(255,149,0,0.5); }
+  .position-btn[data-pos="SB"].last-tap { background: #ff9500; border-color: rgba(255,200,80,0.7);
+    box-shadow: 0 0 20px rgba(255,149,0,0.45), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* BB — green */
+  .position-btn[data-pos="BB"].in-path  { background: rgba(34,160,60,0.75); border-color: rgba(52,199,89,0.45); }
+  .position-btn[data-pos="BB"].last-tap { background: #22a03c; border-color: rgba(80,220,110,0.7);
+    box-shadow: 0 0 20px rgba(52,199,89,0.45), 0 6px 14px rgba(0,0,0,0.55); }
+
+  /* ── Dealer button (HU only) ─────────────────────────────── */
+  .dealer-btn {
+    position: absolute;
+    left: var(--x);
+    top:  var(--y);
+    transform: translate(-50%, -50%);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #f5f0e0;
+    color: #1a1209;
+    font-size: 12px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #9a8860;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.5);
+    pointer-events: none;
+    z-index: 6;
+    letter-spacing: 0;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  /* ── Strategy button (HU centre) ────────────────────────── */
+  .strategy-btn {
+    position: absolute;
+    left: var(--x);
+    top:  var(--y);
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.11);
+    color: rgba(255,255,255,0.85);
+    border: 1.5px solid rgba(255,255,255,0.28);
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 10px 24px;
+    cursor: pointer;
+    z-index: 5;
+    transition: background 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .strategy-btn:active { background: rgba(255,255,255,0.22); }
+
+  /* ── Overview ⋯ dot ──────────────────────────────────────── */
+  .overview-dot {
+    position: absolute;
+    left: var(--dot-x);
+    top:  var(--dot-y);
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.8);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 999px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    padding: 4px 9px;
+    cursor: pointer;
+    z-index: 10;
+    transition: background 0.15s;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .overview-dot:active { background: rgba(255,255,255,0.28); }
+
+  /* ── Overview dropdown ────────────────────────────────────── */
+  #overview-menu {
+    position: fixed;
+    z-index: 300;
+    background: rgb(28, 28, 34);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 6px;
+    min-width: 190px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+  }
+
+  #overview-menu.hidden { display: none; }
+
+  .ov-item {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: rgba(255,255,255,0.9);
+    border: none;
+    padding: 11px 14px;
+    border-radius: 9px;
+    font-size: 15px;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .ov-item:active { background: rgba(255,255,255,0.1); }
+
+  .ov-item.is-strategy {
+    color: rgba(255,196,80,0.9);
+  }
+  .ov-item.is-strategy:active { background: rgba(255,165,0,0.12); }
+
+  .ov-menu-strategy-sep {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 6px 2px;
+  }
+  .ov-menu-strategy-sep::before,
+  .ov-menu-strategy-sep::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,180,50,0.28);
+  }
+  .ov-menu-strategy-sep span {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255,180,50,0.5);
+  }
+
+  .ov-manage-btn {
+    display: block;
+    width: 100%;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 9px 14px;
+    border-radius: 0 0 9px 9px;
+    font-size: 12px;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+  }
+  .ov-manage-btn:active { background: rgba(255,255,255,0.07); }
+
+  /* ── Overview Manager modal ───────────────────────────────── */
+  #overview-manager {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.78);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  #overview-manager.hidden { display: none !important; }
+
+  .ov-mgr-panel {
+    background: rgb(22, 22, 28);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 82vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  }
+
+  .ov-mgr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    flex-shrink: 0;
+  }
+
+  .ov-mgr-header h3 { font-size: 18px; font-weight: 700; }
+
+  .ov-mgr-close-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 30px;
+    cursor: pointer;
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ov-mgr-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 12px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ov-mgr-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255,255,255,0.35);
+    padding: 6px 4px 2px;
+  }
+
+  .ov-mgr-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .ov-mgr-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .ov-mgr-label-text {
+    font-size: 15px;
+    color: rgba(255,255,255,0.85);
+    font-weight: 500;
+  }
+
+  .ov-mgr-base-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.38);
+    font-family: ui-monospace, Menlo, monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ov-mgr-badge {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .ov-mgr-input {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    padding: 7px 10px;
+    width: 100%;
+    font-family: inherit;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  .ov-mgr-input:focus {
+    outline: none;
+    border-color: rgba(52,199,89,0.6);
+    background: rgba(255,255,255,0.1);
+  }
+
+  .ov-mgr-input-base {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+  }
+
+  .ov-mgr-del {
+    background: rgba(255,59,48,0.12);
+    color: rgba(255,110,100,0.9);
+    border: none;
+    border-radius: 8px;
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  .ov-mgr-del:active { background: rgba(255,59,48,0.28); }
+
+  /* Star button — marks an overview as the double-tap default */
+  .ov-mgr-star-btn {
+    background: transparent;
+    border: none;
+    font-size: 19px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px 6px;
+    flex-shrink: 0;
+    color: #ffd700;
+    opacity: 0.22;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .ov-mgr-star-btn.is-default { opacity: 1; }
+  .ov-mgr-star-btn:active { transform: scale(0.82); }
+
+  .ov-mgr-add-section {
+    background: rgba(52,199,89,0.05);
+    border: 1px dashed rgba(52,199,89,0.22);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ov-mgr-add-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(52,199,89,0.7);
+    margin-bottom: 2px;
+  }
+
+  .ov-mgr-add-btn {
+    background: rgba(52,199,89,0.18);
+    color: rgb(52,199,89);
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .ov-mgr-add-btn:active { background: rgba(52,199,89,0.32); }
+
+  /* ── Drag handle ─────────────────────────────────────────────── */
+  .ov-mgr-drag-handle {
+    font-size: 17px;
+    color: rgba(255,255,255,0.2);
+    cursor: grab;
+    padding: 2px 8px 2px 0;
+    flex-shrink: 0;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+    line-height: 1;
+  }
+  .ov-mgr-row.ov-dragging {
+    opacity: 0.2;
+    pointer-events: none;
+  }
+  .ov-drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.75);
+    transform: scale(1.03);
+    opacity: 0.96;
+    border-radius: 10px;
+    background: rgb(28,28,36);
+  }
+
+  /* ── Strategy separator + row tint ──────────────────────────── */
+  .ov-mgr-strategy-sep {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 2px 4px;
+    flex-shrink: 0;
+  }
+  .ov-mgr-strategy-sep::before,
+  .ov-mgr-strategy-sep::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,180,50,0.28);
+  }
+  .ov-mgr-strategy-sep span {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255,180,50,0.5);
+    white-space: nowrap;
+  }
+  .ov-mgr-row.is-strategy {
+    background: rgba(255,165,0,0.08);
+    border: 1px solid rgba(255,165,0,0.16);
+  }
+  .ov-mgr-row.is-strategy .ov-mgr-label-text { color: rgba(255,196,80,0.92); }
+  .ov-mgr-row.is-strategy .ov-mgr-base-text  { color: rgba(255,165,0,0.38); }
+  .ov-mgr-row.is-strategy .ov-mgr-drag-handle { color: rgba(255,165,0,0.22); }
+
+  /* ── Breadcrumb ───────────────────────────────────────────── */
+  .breadcrumb {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    overflow-x: auto;
+    gap: 10px;
+    padding: 4px;
+    scrollbar-width: none;
+  }
+  .breadcrumb::-webkit-scrollbar { display: none; }
+
+  .breadcrumb .empty { color: rgba(255,255,255,0.5); font-size: 15px; }
+
+  .breadcrumb .segment {
+    background: rgba(255,255,255,0.09);
+    color: #fff;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .breadcrumb .arrow { color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 700; flex-shrink: 0; }
+
+  /* ── Controls ─────────────────────────────────────────────── */
+  .controls { display: flex; gap: 14px; padding-top: 8px; }
+
+  .controls button {
+    flex: 1;
+    padding: 15px 22px;
+    border-radius: 999px;
+    border: none;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s ease, opacity 0.15s ease;
+  }
+
+  .controls button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .controls button:not(:disabled):active { opacity: 0.75; }
+
+  #view-btn              { background: rgba(255,255,255,0.07); }
+  #view-btn.has-match    { background: rgba(52,199,89,0.75); }
+  #back-btn              { background: rgba(255,255,255,0.12); }
+  #reset-btn             { background: rgba(255,59,48,0.75); }
+
+  /* ── Chart modal ──────────────────────────────────────────── */
+  #chart-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.97);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    cursor: pointer; /* hint that tapping closes */
+  }
+
+  #chart-modal.hidden { display: none; }
+
+  #chart-modal header.modal-head {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px 60px 12px;  /* side padding keeps text clear of close button */
+    flex-shrink: 0;
+    cursor: default;
+    text-align: center;
+  }
+
+  #chart-modal h2   { font-size: 22px; font-weight: 700; }
+  #modal-path       { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  #modal-filename   {
+    font-size: 11px;
+    color: rgba(255,255,255,0.28);
+    font-family: ui-monospace, Menlo, monospace;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 380px;
+  }
+
+  #close-modal {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.85);
+    font-size: 36px;
+    cursor: pointer;
+    padding: 0;
+    width: 44px;
+    height: 44px;
+    line-height: 1;
+  }
+
+  /* ── Frequency button + bar + panel ─────────────────────────── */
+  #freq-btn {
+    position: absolute;
+    top: 22px;
+    left: 20px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 5px 11px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  #freq-btn:hover, #freq-btn.active {
+    background: rgba(255,255,255,0.16);
+    color: rgba(255,255,255,0.9);
+  }
+
+  #freq-bar {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 24px;
+    pointer-events: none;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  #freq-bar.hidden { display: none; }
+  .freq-action { color: rgba(255,255,255,0.45); }
+  .freq-val    { font-weight: 700; }
+  .freq-val.fold  { color: #74b9ff; }
+  .freq-val.call  { color: #55efc4; }
+  .freq-val.raise { color: #e17055; }
+  .freq-sep { color: rgba(255,255,255,0.2); margin: 0 2px; }
+
+  #freq-panel {
+    position: absolute;
+    top: 66px;
+    left: 16px;
+    z-index: 200;
+    background: rgba(22,22,28,0.97);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 14px;
+    padding: 16px 18px 14px;
+    min-width: 190px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+  }
+  #freq-panel.hidden { display: none; }
+  .freq-panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 12px;
+  }
+  .freq-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .freq-row label {
+    font-size: 13px;
+    font-weight: 600;
+    width: 44px;
+    color: rgba(255,255,255,0.6);
+    flex-shrink: 0;
+  }
+  .freq-row label.fold  { color: #74b9ff; }
+  .freq-row label.call  { color: #55efc4; }
+  .freq-row label.raise { color: #e17055; }
+  .freq-row input[type="number"] {
+    width: 60px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 6px 8px;
+    text-align: right;
+    -moz-appearance: textfield;
+  }
+  .freq-row input[type="number"]::-webkit-inner-spin-button,
+  .freq-row input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .freq-row input[type="number"]:focus {
+    outline: none;
+    border-color: rgba(255,255,255,0.35);
+  }
+  .freq-row .freq-unit {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+  }
+  #freq-panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+  #freq-clear-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 4px 0;
+  }
+  #freq-clear-btn:hover { color: rgba(255,255,255,0.6); }
+
+  .variant-tabs {
+    order: 1;               /* push below zoom/sequence/compare areas (which have default order 0) */
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 64px 22px;
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+    cursor: default;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .variant-tabs::-webkit-scrollbar { display: none; }
+
+  .variant-tabs button {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.7);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .variant-tabs button.active { background: rgba(255,255,255,0.22); color: #fff; }
+
+  /* ── Zoom area ────────────────────────────────────────────── */
+  #zoom-area {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  #zoom-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 16px 24px;
+    cursor: default;
+    will-change: transform;
+    transform-origin: 0 0;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  #zoom-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    /* Crisp rendering — avoids blurring on scale-down (important for charts) */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  #chart-placeholder {
+    position: absolute;
+    inset: 16px 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+
+  .placeholder {
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 4 / 3;
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .placeholder .icon { font-size: 52px; opacity: 0.3; }
+  .placeholder h3    { font-size: 17px; color: rgba(255,255,255,0.75); font-weight: 600; }
+  .placeholder code  {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
+    background: rgba(0,0,0,0.35);
+    padding: 5px 10px;
+    border-radius: 6px;
+    word-break: break-all;
+  }
+  .placeholder p { font-size: 13px; color: rgba(255,255,255,0.5); line-height: 1.4; max-width: 360px; }
+
+  #zoom-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.5);
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+
+  /* ── Sequence mode — side-by-side charts ─────────────────── */
+  #sequence-area {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding: 4px 16px 20px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  #sequence-area.hidden { display: none !important; }
+
+  .seq-panel {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .seq-caption {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.8);
+    text-align: center;
+    flex-shrink: 0;
+    padding: 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    letter-spacing: 0.1px;
+  }
+
+  .seq-img-wrap {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .seq-img-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+
+  .seq-missing {
+    width: 100%;
+    height: 100%;
+    min-height: 80px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    opacity: 0.5;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 12px;
+  }
+  .seq-missing code {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 10px;
+    word-break: break-all;
+  }
+
+  /* ── Variant compare (side-by-side) ──────────────────────────── */
+  #compare-area {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    padding: 4px 16px 20px;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+  }
+  #compare-area::-webkit-scrollbar { display: none; }
+  #compare-area.hidden { display: none !important; }
+
+  .variant-compare-btn {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .variant-compare-btn.active {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    border-color: rgba(255,255,255,0.28);
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── Wide action buttons — expanded CC/3B (three full circles) ───── */
+  /* The center circle is a dimmed reference label; CC and 3B are full buttons */
+  .split-wide-center {
+    opacity: 0.38;
+  }
+  /* Shared tweaks for the two action circles — label only, no sub-text */
+  .split-wide-action {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+  }
+  /* CC — cooler border to signal "passive" */
+  .split-wide-cc {
+    border-color: rgba(160, 200, 255, 0.55) !important;
+    color: #a8cfff;
+  }
+  /* 3B — warmer border to signal "aggressive" */
+  .split-wide-3b {
+    border-color: rgba(255, 120, 120, 0.65) !important;
+    color: #ff9494;
+  }
+  /* Per-position tint (matches existing in-path / last-tap colours, dimmed) */
+  .split-wide-cc[data-pos="BTN"],
+  .split-wide-3b[data-pos="BTN"],
+  .split-wide-center[data-pos="BTN"] { background: rgba(50, 22, 22, 0.95); }
+  .split-wide-cc[data-pos="SB"],
+  .split-wide-3b[data-pos="SB"],
+  .split-wide-center[data-pos="SB"]  { background: rgba(48, 30, 12, 0.95); }
+
+  /* ── Split position buttons (CC left / 3B right) ────────────────── */
+  /* Wrapper positioned exactly like .position-btn */
+  .split-pos-wrap {
+    position: absolute;
+    left: var(--x);
+    top:  var(--y);
+    transform: translate(-50%, -50%);
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    display: flex;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.35);
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .split-half {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgb(31, 36, 46);
+    color: rgba(255,255,255,0.85);
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    padding: 0;
+    gap: 2px;
+    transition: background 0.15s;
+  }
+  .split-half:active { background: rgba(255,255,255,0.12); }
+  .split-half:hover  { background: rgba(255,255,255,0.07); }
+  .split-cc  { border-right: 1px solid rgba(255,255,255,0.18); }
+  .split-3b  { border-left:  none; }
+  .split-action-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    opacity: 0.65;
+    line-height: 1;
+  }
+  .split-pos-lbl {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  /* Per-position colours on split halves (mirror .position-btn[data-pos]) */
+  .split-pos-wrap[data-pos="BTN"] .split-half { background: rgba(45,28,28,1); }
+  .split-pos-wrap[data-pos="BTN"] .split-half:hover { background: rgba(80,35,35,1); }
+  .split-pos-wrap[data-pos="SB"]  .split-half { background: rgba(45,32,18,1); }
+  .split-pos-wrap[data-pos="SB"]  .split-half:hover { background: rgba(75,45,20,1); }
+
+  /* "Set default" star button inside the variant-tabs bar */
+  .sit-default-btn {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.18);
+    color: rgba(255,255,255,0.5);
+    border-radius: 4px;
+    font-size: 13px;
+    padding: 4px 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    margin-left: 4px;
+  }
+  .sit-default-btn:hover        { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.35); }
+  .sit-default-btn.is-default   { color: #f0c400; border-color: rgba(240,196,0,0.4); }
+
+  /* ── Help Button & Modal ────────────────────────────────────────── */
+  #help-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #help-btn:hover {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.24);
+  }
+
+  #help-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.97);
+    z-index: 150;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  #help-modal.hidden {
+    display: none !important;
+  }
+
+  .help-panel {
+    background: rgba(20,20,20,0.95);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 620px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .help-header {
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .help-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .help-header button {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+  }
+  .help-header button:hover {
+    color: #fff;
+  }
+
+  .help-body {
+    overflow-y: auto;
+    flex: 1;
+    padding: 24px;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .help-section {
+    margin-bottom: 28px;
+  }
+  .help-section:last-child {
+    margin-bottom: 0;
+  }
+  .help-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 12px 0;
+  }
+
+  .help-section p {
+    margin: 0 0 12px 0;
+    color: rgba(255,255,255,0.75);
+  }
+  .help-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .help-section ul {
+    margin: 0;
+    padding-left: 20px;
+    color: rgba(255,255,255,0.75);
+  }
+  .help-section li {
+    margin-bottom: 8px;
+  }
+
+  .help-naming-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .help-naming-table thead {
+    background: rgba(0,0,0,0.4);
+  }
+  .help-naming-table th {
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .help-naming-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.8);
+  }
+  .help-naming-table tr:last-child td {
+    border-bottom: none;
+  }
+  .help-naming-table code {
+    background: rgba(0,0,0,0.3);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #e0e0ff;
+    white-space: nowrap;
+  }
+
+  .help-examples {
+    background: rgba(0,0,0,0.2);
+    border-left: 3px solid rgba(255,255,255,0.2);
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #c0c0c0;
+    line-height: 1.5;
+  }
+
+  .help-step {
+    margin: 12px 0;
+    padding-left: 24px;
+    position: relative;
+  }
+  .help-step::before {
+    content: attr(data-step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: rgba(255,255,255,0.1);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+  }
+
+  @media (max-width: 820px) {
+    .position-btn { width: 78px; height: 78px; font-size: 18px; border-width: 2px; }
+    .title-group h1 { font-size: 20px; }
+    #app { padding: 12px 16px 16px; }
+  }
+
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <div class="title-group">
+      <h1>Range Navigator</h1>
+      <div class="setting-row">
+        <label class="setting-toggle">
+          <input type="checkbox" id="auto-reset-toggle" checked>
+          <span>Reset path on felt tap</span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label class="setting-toggle">
+          <input type="checkbox" id="sequence-toggle">
+          <span>Show next action in sequence</span>
+        </label>
+      </div>
+      <div class="setting-row">
+        <label class="setting-toggle">
+          <input type="checkbox" id="wide-split-toggle">
+          <span>Wide CC / 3B buttons</span>
+        </label>
+      </div>
+    </div>
+    <div class="toolbar">
+      <div class="format-picker" id="format-picker">
+        <button data-format="sixMax"  class="active">6max</button>
+        <button data-format="headsUp">Heads-Up</button>
+      </div>
+      <div class="pack-picker-wrap">
+        <select id="pack-picker"></select>
+      </div>
+      <button id="help-btn" aria-label="Help & Documentation">?</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="table-container">
+      <div class="table" id="table"></div>
+    </div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="controls">
+      <button id="view-btn"  disabled>↗ View Chart</button>
+      <button id="back-btn"  disabled>↶ Back</button>
+      <button id="reset-btn" disabled>✕ Reset</button>
+    </div>
+  </main>
+</div>
+
+<div id="overview-menu" class="hidden"></div>
+
+<!-- Overview Manager modal -->
+<div id="overview-manager" class="hidden">
+  <div class="ov-mgr-panel">
+    <div class="ov-mgr-header">
+      <h3>Overviews — <span id="ov-mgr-pos"></span></h3>
+      <button class="ov-mgr-close-btn" id="ov-mgr-close-btn">×</button>
+    </div>
+    <div class="ov-mgr-body" id="ov-mgr-body"></div>
+  </div>
+</div>
+
+<div id="chart-modal" class="hidden">
+  <header class="modal-head">
+    <button id="freq-btn" aria-label="Set frequencies">%</button>
+    <div>
+      <h2 id="modal-title"></h2>
+      <p  id="modal-filename"></p>
+    </div>
+    <button id="close-modal" aria-label="Close">×</button>
+  </header>
+  <div class="variant-tabs" id="variant-tabs"></div>
+  <div id="freq-panel" class="hidden">
+    <div class="freq-panel-title">Frequencies</div>
+    <div class="freq-row"><label class="fold">Fold</label><input type="number" id="freq-fold" min="0" max="100" placeholder="—"><span class="freq-unit">%</span></div>
+    <div class="freq-row"><label class="call">Call</label><input type="number" id="freq-call" min="0" max="100" placeholder="—"><span class="freq-unit">%</span></div>
+    <div class="freq-row"><label class="raise">Raise</label><input type="number" id="freq-raise" min="0" max="100" placeholder="—"><span class="freq-unit">%</span></div>
+    <div id="freq-panel-footer"><button id="freq-clear-btn">Clear all</button></div>
+  </div>
+  <div id="zoom-area">
+    <div id="zoom-wrapper">
+      <img id="chart-img" class="hidden" alt="" decoding="async">
+    </div>
+    <div id="chart-placeholder" class="hidden">
+      <div class="placeholder">
+        <div class="icon">🃏</div>
+        <h3 id="ph-title">Image not found</h3>
+        <code id="ph-path"></code>
+        <p>Check the filename matches, then run build-manifest.ps1.</p>
+      </div>
+    </div>
+    <div id="freq-bar" class="hidden"></div>
+    <div id="zoom-hint">Scroll or pinch to zoom · Tap to close</div>
+  </div>
+  <div id="sequence-area" class="hidden"></div>
+  <div id="compare-area"  class="hidden"></div>
+</div>
+
+<!-- Help & Documentation Modal -->
+<div id="help-modal" class="hidden">
+  <div class="help-panel">
+    <div class="help-header">
+      <h2>Help & Documentation</h2>
+      <button id="close-help" aria-label="Close help">×</button>
+    </div>
+    <div class="help-body">
+      <!-- Quick Start Section -->
+      <div class="help-section">
+        <h3>👋 Quick Start</h3>
+        <p>Range Navigator is an interactive poker chart viewer for iPad. Tap positions on the table to build paths and view corresponding range charts.</p>
+        <p>Use the format buttons to switch between 6-max and Heads-Up, and the pack dropdown to select different strategy files.</p>
+      </div>
+
+      <!-- Naming Convention Section -->
+      <div class="help-section">
+        <h3>📋 Image Naming Convention</h3>
+        <p>When adding custom chart images, follow this naming system. Charts are organized by <strong>situation</strong> — who's acting and what action they're taking.</p>
+
+        <table class="help-naming-table">
+          <thead>
+            <tr>
+              <th>Situation</th>
+              <th>File Name Pattern</th>
+              <th>Examples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>RFI</strong><br>(opening)</td>
+              <td><code>Position.png</code></td>
+              <td><code>UTG.png</code><br><code>BTN.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>3B</strong><br>(we open, opponent 3bets)</td>
+              <td><code>Actor_3B-Opener(-size).png</code></td>
+              <td><code>BTN_3B-CO.png</code><br><code>BTN_3B-CO-7bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>vs 3B</strong><br>(we opened, opponent 3bet)</td>
+              <td><code>Actor-Opener_3B(-size).png</code></td>
+              <td><code>UTG-CO_3B.png</code><br><code>UTG-CO_3B-22bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>4B</strong><br>(in a 3bet pot, we 4bet)</td>
+              <td><code>Actor_4B-Opponent(-size).png</code></td>
+              <td><code>UTG_4B-BTN.png</code><br><code>UTG_4B-BTN-22bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>vs 4B</strong><br>(in a 3bet pot, opponent 4bets)</td>
+              <td><code>Actor-Opponent_4B(-size).png</code></td>
+              <td><code>BTN-UTG_4B.png</code><br><code>BTN-UTG_4B-23bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>C4B</strong><br>(cold 4bet, 3 players)</td>
+              <td><code>Actor_C4B-3Bpos-Opener(-size).png</code></td>
+              <td><code>BB_C4B-SB-BTN.png</code><br><code>BB_C4B-SB-BTN-23bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>Squeeze</strong><br>(we squeeze, 2+ callers)</td>
+              <td><code>Actor_Squeeze-Caller-Opener(-size).png</code></td>
+              <td><code>BB_Squeeze-BTN-UTG.png</code><br><code>BB_Squeeze-BTN-UTG-13bb.png</code></td>
+            </tr>
+            <tr>
+              <td><strong>vs Squeeze</strong><br>(opponent squeezes)</td>
+              <td><code>Actor-Caller-Squeezer_Squeeze(-size).png</code></td>
+              <td><code>UTG-BTN-BB_Squeeze.png</code><br><code>UTG-BTN-BB_Squeeze-13bb.png</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <p><strong>Naming Rules:</strong></p>
+        <ul>
+          <li><code>_</code> separates the actor position from their action (e.g., <code>BTN_3B</code>)</li>
+          <li><code>-</code> separates different players in the situation (e.g., <code>CO-BTN</code>)</li>
+          <li>Size goes at the very end (e.g., <code>-7bb</code>, <code>-22bb</code>)</li>
+          <li>Create size variants by adding <code>-sizeName</code>: <code>BTN_3B-CO.png</code> (base) + <code>BTN_3B-CO-7bb.png</code> + <code>BTN_3B-CO-9bb.png</code> → tabs appear automatically</li>
+        </ul>
+
+        <p><strong>File Placement:</strong> Charts live in position subfolders: <code>images/{pack}/{position}/filename.png</code></p>
+      </div>
+
+      <!-- Features Section -->
+      <div class="help-section">
+        <h3>⚙️ Settings & Features</h3>
+
+        <p><strong>Pack Selector</strong> — Choose which strategy pack to view. Different packs contain strategies for different stack depths, rake structures, or game variants.</p>
+
+        <p><strong>Format Switcher</strong> — Switch between 6-max and Heads-Up table layouts.</p>
+
+        <p><strong>Auto-Reset Toggle</strong> — Automatically clears your path when you tap the felt outside of positions. Handy for rapid lookups.</p>
+
+        <p><strong>Show Sequence Toggle</strong> — Display the next action in the sequence alongside your current range. Helpful for understanding flow.</p>
+
+        <p><strong>Overview Manager (⋯ button)</strong> — Tap the three-dot menu on any position to:</p>
+        <ul>
+          <li>Add custom overview charts (e.g., combined RFI ranges for a position)</li>
+          <li>Set a default overview (opened when double-tapping a position)</li>
+          <li>Drag to reorder your overview list</li>
+          <li>Edit labels and file paths inline</li>
+        </ul>
+
+        <p><strong>Frequency Display (% button)</strong> — In the chart modal, tap the % button to toggle frequency percentages on/off.</p>
+
+        <p><strong>Custom Overviews</strong> — All overviews you add are saved locally in your browser. They sync across devices only if you back them up via data.js.</p>
+      </div>
+
+      <!-- Adding Custom Charts Section -->
+      <div class="help-section">
+        <h3>➕ Adding Your Own Charts</h3>
+        <p>You can add new chart images to the app using two methods:</p>
+
+        <p><strong>Method A: In-App (easiest)</strong></p>
+        <ul>
+          <li>Tap the ⋯ button on any position → Manage</li>
+          <li>Tap "Add new entry"</li>
+          <li>Fill in the position, action, label, and file path (relative to <code>images/</code>)</li>
+          <li>Create or place your PNG file at that path, then reload</li>
+        </ul>
+
+        <p><strong>Method B: Edit data.js</strong></p>
+        <ul>
+          <li>Create a chart image and name it using the convention above</li>
+          <li>Place it in the correct folder: <code>images/{pack}/{position}/{filename}.png</code></li>
+          <li>Add a node entry to the pack's <code>nodes</code> array in <code>data.js</code> (copy an existing node as a template)</li>
+          <li>Double-click <code>build-manifest.ps1</code> to rebuild the file index</li>
+          <li>Reload the app to see your new chart</li>
+        </ul>
+      </div>
+
+      <!-- Keyboard & Touch Tips -->
+      <div class="help-section">
+        <h3>💡 Tips & Tricks</h3>
+        <ul>
+          <li><strong>Double-tap a position</strong> to open its default overview</li>
+          <li><strong>Drag in the chart view</strong> to pan when zoomed in</li>
+          <li><strong>Pinch or scroll</strong> to zoom in/out of charts</li>
+          <li><strong>Tap outside the chart</strong> to close the modal (or use the ✕ button)</li>
+          <li><strong>Drag overview items</strong> in the Manager to reorder them</li>
+          <li>All your custom overviews are saved locally — no internet needed</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>window.IMAGE_MANIFEST = window.IMAGE_MANIFEST || [];</script>
+<script src="manifest.js"  onerror="/* not generated yet */"></script>
+<script src="data.js"></script>
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// App state
+// ═══════════════════════════════════════════════════════════════
+const state = {
+  format:             "sixMax",
+  currentPackId:      null,
+  currentPath:        [],
+  activeNode:         null,
+  activeVariantIndex: 0,
+};
+
+// Default ON — user can toggle off
+let autoResetOnFeltTap = true;
+
+// Sequence mode — show next-action chart alongside the current one
+let showSequence        = false;
+let showVariantCompare  = false;
+
+// Wide CC/3B buttons — show three full circles instead of split halves
+let wideActionButtons = false;
+
+const POSITIONS = {
+  sixMax:  ["UTG", "MP", "CO", "BTN", "SB", "BB"],
+  headsUp: ["BTN", "BB"],   // BTN = dealer/SB in heads-up
+};
+
+const DISPLAY_NAMES = {
+  UTG: "UTG", MP: "MP", CO: "CO",
+  BTN: "BTN", SB: "SB", BB: "BB",
+};
+
+// ── Path-step helpers ─────────────────────────────────────────────
+// A step is either "BTN" (3-bettor/normal) or "BTN_CC" (cold-caller).
+function pathPos(step)  { return step.replace(/_CC$/, ""); }
+function pathIsCC(step) { return step.endsWith("_CC"); }
+
+// ── Per-node "default situation" (C4B vs Squeeze) ─────────────────
+// Stored in localStorage so the last-chosen tab persists across sessions.
+function _sitKey(nodePath) { return "rn_sit_" + nodePath.join("_"); }
+function getDefaultSit(nodePath) {
+  try { return localStorage.getItem(_sitKey(nodePath)) || "c4b"; } catch { return "c4b"; }
+}
+function setDefaultSit(nodePath, sit) {
+  try { localStorage.setItem(_sitKey(nodePath), sit); } catch {}
+}
+
+// ── Which positions show CC/3B split button ───────────────────────
+// BTN: after UTG/MP/CO open.  SB: after UTG/MP/CO/BTN open.
+function canColdCall(pos, opener) {
+  if (state.format !== "sixMax") return false;
+  const idx = POSITIONS.sixMax.indexOf(opener);
+  if (idx < 0) return false;
+  if (pos === "BTN") return idx <= 2;  // UTG(0) MP(1) CO(2)
+  if (pos === "SB")  return idx <= 3;  // + BTN(3)
+  return false;
+}
+
+// Positions whose ⋯ dot goes ABOVE the oval
+const DOT_ABOVE = new Set(["UTG", "MP", "BB"]);
+
+// ═══════════════════════════════════════════════════════════════
+// Pack management — auto-detect from IMAGE_MANIFEST
+// ═══════════════════════════════════════════════════════════════
+
+function getEffectivePacks() {
+  const basePacks = (typeof PACKS !== "undefined") ? PACKS : [];
+  const manifest  = window.IMAGE_MANIFEST || [];
+
+  if (manifest.length === 0) return basePacks;
+
+  // All unique top-level folders in the manifest
+  const folders = [...new Set(manifest.map(p => p.split("/")[0]))];
+
+  // Folders already covered by an explicit pack entry
+  const coveredFolders = new Set(basePacks.map(p => p.imageFolder));
+
+  // Auto-generate a pack for any folder not yet listed
+  const autoPacks = folders
+    .filter(f => !coveredFolders.has(f))
+    .map(folder => {
+      const isHU   = /\bhu\b/i.test(folder);
+      const format = isHU ? "headsUp" : "sixMax";
+      // Clone nodes from the first matching template pack so navigation works
+      const tmpl   = basePacks.find(p => p.format === format);
+      return {
+        id:          folder,
+        displayName: folder,     // folder name IS the display name
+        format,
+        imageFolder: folder,
+        overviews:   [],         // start empty; user can add via in-app manager
+        nodes:       tmpl ? tmpl.nodes : [],
+      };
+    });
+
+  return [...basePacks, ...autoPacks];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Overview management — localStorage CRUD
+// ═══════════════════════════════════════════════════════════════
+
+function getCustomOverviews(packId, pos) {
+  try {
+    return JSON.parse(localStorage.getItem(`rn_ov_${packId}_${pos}`) || "[]");
+  } catch { return []; }
+}
+
+function saveCustomOverviews(packId, pos, overviews) {
+  try {
+    localStorage.setItem(`rn_ov_${packId}_${pos}`, JSON.stringify(overviews));
+  } catch {}
+}
+
+// ── Default overview per position (for standalone double-tap) ──────
+// Priority: 1. localStorage user choice  2. pack defaultOverviews  3. null
+
+function getDefaultOverview(packId, pos) {
+  try {
+    const stored = localStorage.getItem(`rn_def_ov_${packId}_${pos}`);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  const pack = getEffectivePacks().find(p => p.id === packId);
+  return pack?.defaultOverviews?.[pos] || null;
+}
+
+function setDefaultOverview(packId, pos, ov) {
+  try {
+    const key = `rn_def_ov_${packId}_${pos}`;
+    if (ov) localStorage.setItem(key, JSON.stringify(ov));
+    else    localStorage.removeItem(key);
+  } catch {}
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Zoom state
+// ═══════════════════════════════════════════════════════════════
+const Z = { scale: 1, tx: 0, ty: 0 };
+const ZOOM_MAX = 5;
+const ZOOM_MIN = 0.25; // allow zooming out to 25%
+
+function applyZoom() {
+  const w = document.getElementById("zoom-wrapper");
+  if (!w) return;
+  w.style.transform = `translate(${Z.tx}px, ${Z.ty}px) scale(${Z.scale})`;
+  w.style.cursor = Z.scale > 1 ? "grab" : "default";
+  const hint = document.getElementById("zoom-hint");
+  if (hint) hint.style.opacity = Z.scale > 1 ? "0" : "1";
+}
+
+function resetZoom() {
+  const rect = document.getElementById("zoom-area").getBoundingClientRect();
+  Z.scale = 1;
+  Z.tx = rect.width  / 2 * (1 - 1);  // = 0, but computed consistently
+  Z.ty = rect.height / 2 * (1 - 1);
+  Z.tx = 0; Z.ty = 0;
+  applyZoom();
+}
+
+// Zoom toward/away from viewport centre
+function applyCenterZoom(newScale) {
+  const rect = document.getElementById("zoom-area").getBoundingClientRect();
+  const cx = rect.width / 2, cy = rect.height / 2;
+  if (newScale <= 1) {
+    Z.tx = cx * (1 - newScale);
+    Z.ty = cy * (1 - newScale);
+  } else {
+    Z.tx = cx - (cx - Z.tx) / Z.scale * newScale;
+    Z.ty = cy - (cy - Z.ty) / Z.scale * newScale;
+  }
+  Z.scale = newScale;
+  applyZoom();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Double-tap tracker (main table)
+// ═══════════════════════════════════════════════════════════════
+let lastTap         = { pos: null, time: 0 };
+const DOUBLE_TAP_MS = 350;
+
+// ═══════════════════════════════════════════════════════════════
+// Overview menu state
+// ═══════════════════════════════════════════════════════════════
+let activeOverviewMenuPos = null;
+
+// ═══════════════════════════════════════════════════════════════
+// Helpers
+// ═══════════════════════════════════════════════════════════════
+function getCurrentPack() {
+  return getEffectivePacks().find(p => p.id === state.currentPackId) || null;
+}
+
+function findNode(path) {
+  const pack = getCurrentPack();
+  if (!pack) return null;
+  return pack.nodes.find(n =>
+    n.path.length === path.length &&
+    n.path.every((p, i) => p === path[i])
+  ) || null;
+}
+
+function getOverviewsForPosition(pos) {
+  const pack = getCurrentPack();
+  if (!pack) return [];
+  const base   = (pack.overviews || []).filter(o => o.position === pos).map(o => ({ ...o, _source: "pack" }));
+  const custom = getCustomOverviews(pack.id, pos).map(o => ({
+    ...o,
+    position: pos,
+    _source: "custom",
+  }));
+  return [...base, ...custom];
+}
+
+// ─── Image naming — lookup helpers ──────────────────────────────
+//
+//  NEW naming convention (supported natively):
+//
+//    RFI:          Position.png               (e.g. UTG.png)
+//    3B:           Pos_3B-Opponent(-size)     (e.g. BTN_3B-CO-7bb)
+//    vs 3B:        Pos-Opponent_3B(-size)     (e.g. UTG-CO_3B-22bb)
+//    4B:           Pos_4B-Opponent(-size)     (e.g. UTG_4B-BTN-22bb)
+//    vs 4B:        Pos-Opponent_4B(-size)     (e.g. BTN-UTG_4B-23bb)
+//    C4B:          Pos_C4B-3Bpos-Opener(-sz)  (e.g. BB_C4B-SB-BTN-23bb)
+//    Squeeze:      Pos_Squeeze-CC-Opener(-sz) (e.g. BB_Squeeze-BTN-UTG-13bb)
+//    vs Squeeze:   Pos-CC-Sq_Squeeze(-size)   (e.g. UTG-BTN-BB_Squeeze-13bb)
+//
+//  Rules:
+//    _  separates position from action label
+//    -  separates components (players / size)
+//    Size is always the last segment (-7bb, -22bb, -2.5bb)
+//    No "3B" label in filenames — 3B is the default implicit action
+//
+//  OLD naming still works as a fallback (imageBase + _variant suffix).
+
+function getChartsForNode(node) {
+  const pack     = getCurrentPack();
+  const manifest = window.IMAGE_MANIFEST || [];
+  if (!pack) return [];
+
+  const path = node.path || [];
+  const folder = node.imageFolder
+    ? `${pack.imageFolder}/${node.imageFolder}`
+    : pack.imageFolder;
+  const dirPrefix = folder + "/";
+
+  // ── Helpers ──────────────────────────────────────────────────
+
+  // Find all manifest files that are exactly baseNoExt or baseNoExt-size
+  function findWithSizes(baseNoExt) {
+    return manifest.filter(f => {
+      if (!f.startsWith(dirPrefix)) return false;
+      const name = f.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      return name === baseNoExt || name.startsWith(baseNoExt + "-");
+    });
+  }
+
+  // Turn a match list into [{label, src}], sorted numerically by size suffix
+  function makeCharts(matches, baseNoExt) {
+    if (matches.length === 0) return [];
+    if (matches.length === 1) {
+      const name = matches[0].slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      return [{ label: name !== baseNoExt ? name.slice(baseNoExt.length + 1) : null, src: "images/" + matches[0] }];
+    }
+    const hasBase = matches.some(f => f.slice(dirPrefix.length).replace(/\.[^.]+$/, "") === baseNoExt);
+    matches.sort((a, b) => {
+      const nA = a.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      const nB = b.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      if (nA === baseNoExt) return -1;
+      if (nB === baseNoExt) return  1;
+      return (parseFloat(nA.slice(baseNoExt.length + 1)) || 0)
+           - (parseFloat(nB.slice(baseNoExt.length + 1)) || 0);
+    });
+    return matches.map(f => {
+      const name = f.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      const label = name === baseNoExt
+        ? (hasBase && matches.length > 1 ? "Base" : null)
+        : name.slice(baseNoExt.length + 1);
+      return { label, src: "images/" + f };
+    });
+  }
+
+  // Bare positions extracted from path steps (strips _CC suffix)
+  const positions = path.map(pathPos);
+
+  // ── NEW-STYLE lookup (new naming convention) ─────────────────
+
+  // RFI: path.length === 1 → Position.png (or Position-size.png)
+  if (path.length === 1) {
+    const pos = positions[0];
+    const matches = findWithSizes(pos).filter(f => {
+      const name = f.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
+      if (name === pos) return true;
+      // Allow Position-size (size must start with digit, no underscores)
+      const after = name.slice(pos.length + 1);
+      return /^\d/.test(after) && !after.includes("_");
+    });
+    if (matches.length > 0) return makeCharts(matches, pos);
+  }
+
+  // 3BET: path.length === 2, no _CC → Actor_3B-Opener(-size)
+  if (path.length === 2 && !pathIsCC(path[1])) {
+    const [opener, actor] = positions;
+    const base = `${actor}_3B-${opener}`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+  }
+
+  // SQUEEZE: path.length === 3, middle step is _CC → Squeezer_Squeeze-Caller-Opener(-size)
+  if (path.length === 3 && pathIsCC(path[1])) {
+    const [opener, caller, squeezer] = positions;
+    const base = `${squeezer}_Squeeze-${caller}-${opener}`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+  }
+
+  // C4B: path.length === 3, no _CC, c4b ≠ opener → C4B_C4B-3Bpos-Opener(-size)
+  // Also collect any matching Squeeze images for the same 3 positions and combine as tabs.
+  if (path.length === 3 && !pathIsCC(path[1]) && positions[2] !== positions[0]) {
+    const [opener, threebetter, c4b] = positions;
+
+    const c4bBase = `${c4b}_C4B-${threebetter}-${opener}`;
+    const sqBase  = `${c4b}_Squeeze-${threebetter}-${opener}`;
+    const c4bM = findWithSizes(c4bBase);
+    const sqM  = findWithSizes(sqBase);
+
+    if (c4bM.length > 0 || sqM.length > 0) {
+      // Build labelled chart arrays for each situation
+      const labelledCharts = (matches, base, sitLabel, sit) => {
+        if (matches.length === 0) return [];
+        return makeCharts(matches, base).map((c, i, arr) => {
+          // If both situations present, prefix labels so tabs read "C4B", "C4B 7bb", "Squeeze", "Sq 13bb"
+          const hasOther = sit === "c4b" ? sqM.length > 0 : c4bM.length > 0;
+          let label = c.label;
+          if (hasOther) {
+            const short = sit === "c4b" ? "C4B" : "Sq";
+            label = label == null ? sitLabel : `${short} ${label}`;
+          }
+          return { ...c, label, situation: sit };
+        });
+      };
+
+      const c4bCharts = labelledCharts(c4bM, c4bBase, "C4B", "c4b");
+      const sqCharts  = labelledCharts(sqM,  sqBase,  "Squeeze", "squeeze");
+
+      // Put preferred situation first based on localStorage default
+      const pref = getDefaultSit(path);
+      if (pref === "squeeze" && sqCharts.length > 0) {
+        return [...sqCharts, ...c4bCharts];
+      }
+      return [...c4bCharts, ...sqCharts];
+    }
+  }
+
+  // ── OLD-STYLE fallback (imageBase + underscore-variant or dash-size) ─
+  return getOldStyleCharts(node, pack, manifest);
+}
+
+function getOldStyleCharts(node, pack, manifest) {
+  if (!pack) return [];
+  const prefix = node.imageFolder
+    ? `${pack.imageFolder}/${node.imageFolder}/${node.imageBase}`
+    : `${pack.imageFolder}/${node.imageBase}`;
+
+  if (manifest.length > 0) {
+    // Build a set of every other node's exact path to avoid cross-contamination
+    const otherBases = new Set(
+      (pack.nodes || [])
+        .filter(n => n !== node)
+        .map(n => n.imageFolder
+          ? `${pack.imageFolder}/${n.imageFolder}/${n.imageBase}`
+          : `${pack.imageFolder}/${n.imageBase}`)
+    );
+    const matches = manifest.filter(f => {
+      const noExt = f.replace(/\.[^.]+$/, "");
+      if (noExt === prefix) return true;
+      // Old-style underscore variant: prefix_label
+      if (noExt.startsWith(prefix + "_")) return !otherBases.has(noExt);
+      // New-style dash-size variant: prefix-size (e.g. UTG-BB_3B-7bb)
+      if (noExt.startsWith(prefix + "-")) return !otherBases.has(noExt);
+      return false;
+    });
+    if (matches.length === 1) return [{ label: null, src: "images/" + matches[0] }];
+    if (matches.length > 1) {
+      const varOrder = node.variants || [];
+      matches.sort((a, b) => {
+        const noExtA = a.replace(/\.[^.]+$/, "");
+        const noExtB = b.replace(/\.[^.]+$/, "");
+        if (noExtA === prefix) return -1;
+        if (noExtB === prefix) return  1;
+        // Label = everything after the first _ or - separator after prefix
+        const lblA = noExtA.slice(prefix.length + 1);
+        const lblB = noExtB.slice(prefix.length + 1);
+        const ia = varOrder.indexOf(lblA), ib = varOrder.indexOf(lblB);
+        if (ia !== -1 && ib !== -1) return ia - ib;
+        if (ia !== -1) return -1;
+        if (ib !== -1) return  1;
+        const numA = parseFloat(lblA), numB = parseFloat(lblB);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return lblA.localeCompare(lblB);
+      });
+      return matches.map(f => {
+        const noExt = f.replace(/\.[^.]+$/, "");
+        const label = noExt === prefix ? "Base" : noExt.slice(prefix.length + 1);
+        return { label, src: "images/" + f };
+      });
+    }
+  }
+  return [{ label: null, src: `images/${prefix}.png` }];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Intents
+// ═══════════════════════════════════════════════════════════════
+// action: null/"3B" = normal 3-bet step, "CC" = cold-call step (appends "_CC")
+function handlePositionTap(pos, action) {
+  closeOverviewMenu();
+  const now      = Date.now();
+  const isDouble = (pos === lastTap.pos) && (now - lastTap.time < DOUBLE_TAP_MS);
+  lastTap = { pos, time: isDouble ? 0 : now };
+
+  if (isDouble) {
+    // "Standalone" double-tap: this position is the only one in the path
+    const isStandalone = state.currentPath.length === 1 && pathPos(state.currentPath[0]) === pos;
+    if (isStandalone) {
+      const pack  = getCurrentPack();
+      const defOv = pack ? getDefaultOverview(pack.id, pos) : null;
+      if (defOv) { openOverviewChart(defOv); return; }
+    }
+    // Open the chart for the full current path
+    const node = findNode(state.currentPath);
+    if (node) { state.activeNode = node; state.activeVariantIndex = 0; openModal(); }
+    return;
+  }
+  const step = (action === "CC") ? pos + "_CC" : pos;
+  state.currentPath.push(step);
+  render();
+}
+
+function viewChart() {
+  const node = findNode(state.currentPath);
+  if (!node) return;
+  state.activeNode = node; state.activeVariantIndex = 0;
+  openModal();
+}
+
+function back() {
+  if (state.currentPath.length === 0) return;
+  state.currentPath.pop();
+  render();
+}
+
+function resetPath() {
+  state.currentPath = [];
+  lastTap = { pos: null, time: 0 };
+  render();
+}
+
+function openModal() {
+  resetZoom();
+  document.getElementById("chart-modal").classList.remove("hidden");
+  renderModal();
+}
+
+function closeModal() {
+  if (document.getElementById("chart-modal").classList.contains("hidden")) return;
+  closeFreqPanel();
+  state.activeNode = null;
+  document.getElementById("chart-modal").classList.add("hidden");
+  resetZoom();
+  resetPath();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Overview menu (⋯ dropdown)
+// ═══════════════════════════════════════════════════════════════
+function toggleOverviewMenu(pos, dotEl, event) {
+  event.stopPropagation();
+  if (activeOverviewMenuPos === pos) { closeOverviewMenu(); return; }
+  closeOverviewMenu();
+
+  const menu = document.getElementById("overview-menu");
+  menu.innerHTML = "";
+
+  const overviews = getOverviewsForPosition(pos);
+  let prevWasStrategy = false;
+  overviews.forEach(ov => {
+    const isStrategy = /strategy/i.test(ov.label);
+
+    if (isStrategy && !prevWasStrategy && menu.querySelector(".ov-item")) {
+      const sep = document.createElement("div");
+      sep.className = "ov-menu-strategy-sep";
+      sep.innerHTML = "<span>Strategy</span>";
+      menu.appendChild(sep);
+    }
+    prevWasStrategy = isStrategy;
+
+    const btn = document.createElement("button");
+    btn.className   = "ov-item" + (isStrategy ? " is-strategy" : "");
+    btn.textContent = ov.label;
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      closeOverviewMenu();
+      openOverviewChart(ov);
+    });
+    menu.appendChild(btn);
+  });
+
+  // "Manage" button always shown at bottom
+  const mgr = document.createElement("button");
+  mgr.className   = "ov-manage-btn";
+  mgr.textContent = "⚙ Manage overviews";
+  mgr.addEventListener("click", e => {
+    e.stopPropagation();
+    closeOverviewMenu();
+    openOverviewManager(pos);
+  });
+  menu.appendChild(mgr);
+
+  menu.style.visibility = "hidden";
+  menu.classList.remove("hidden");
+  const menuW = menu.offsetWidth;
+  const menuH = menu.offsetHeight;
+  const rect  = dotEl.getBoundingClientRect();
+  let top  = rect.top - menuH - 10;
+  if (top < 8) top = rect.bottom + 10;
+  let left = rect.left + rect.width / 2 - menuW / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - menuW - 8));
+  menu.style.top  = top  + "px";
+  menu.style.left = left + "px";
+  menu.style.visibility = "visible";
+  activeOverviewMenuPos = pos;
+}
+
+function closeOverviewMenu() {
+  document.getElementById("overview-menu").classList.add("hidden");
+  activeOverviewMenuPos = null;
+}
+
+function openOverviewChart(overview) {
+  state.activeNode = {
+    title:       overview.label,
+    path:        [],
+    imageFolder: overview.imageFolder || "",
+    imageBase:   overview.imageBase,
+  };
+  state.activeVariantIndex = 0;
+  openModal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Overview Manager (in-app CRUD)
+// ═══════════════════════════════════════════════════════════════
+let ovManagerPos = null;
+
+// ── Order persistence ────────────────────────────────────────
+function getOrderedOverviews(packId, pos) {
+  const pack   = getEffectivePacks().find(p => p.id === packId);
+  const builtin = (pack?.overviews || []).filter(o => o.position === pos)
+                    .map(o => ({ ...o, _source: "builtin" }));
+  const custom  = getCustomOverviews(packId, pos)
+                    .map(o => ({ ...o, _source: "custom" }));
+  const all = [...builtin, ...custom];
+  try {
+    const saved = JSON.parse(localStorage.getItem(`rn_ov_order_${packId}_${pos}`));
+    if (Array.isArray(saved) && saved.length) {
+      const out = [];
+      saved.forEach(base => { const f = all.find(o => o.imageBase === base); if (f) out.push(f); });
+      all.forEach(o => { if (!out.find(x => x.imageBase === o.imageBase)) out.push(o); });
+      return out;
+    }
+  } catch {}
+  return all;
+}
+
+function saveOverviewOrder(packId, pos, bases) {
+  try { localStorage.setItem(`rn_ov_order_${packId}_${pos}`, JSON.stringify(bases)); } catch {}
+}
+
+// ── Touch drag state ─────────────────────────────────────────
+const ovDrag = { active: false, ghostEl: null, srcEl: null, offsetY: 0 };
+
+function startOvDrag(e, rowEl) {
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const touch = e.touches[0];
+  const rect  = rowEl.getBoundingClientRect();
+
+  const ghost = rowEl.cloneNode(true);
+  ghost.className = (rowEl.className + " ov-drag-ghost").trim();
+  ghost.style.cssText = `position:fixed;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;`;
+  document.body.appendChild(ghost);
+
+  rowEl.classList.add("ov-dragging");
+  ovDrag.active  = true;
+  ovDrag.ghostEl = ghost;
+  ovDrag.srcEl   = rowEl;
+  ovDrag.offsetY = touch.clientY - rect.top;
+
+  document.addEventListener("touchmove", onOvDragMove, { passive: false });
+  document.addEventListener("touchend",  onOvDragEnd,  { passive: true  });
+}
+
+function onOvDragMove(e) {
+  if (!ovDrag.active) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  ovDrag.ghostEl.style.top = (touch.clientY - ovDrag.offsetY) + "px";
+
+  const body = document.getElementById("ov-mgr-body");
+  const rows = Array.from(body.querySelectorAll(".ov-mgr-row[data-image-base]"))
+                    .filter(r => r !== ovDrag.srcEl);
+
+  let insertBefore = null; // null = end of list
+  for (const row of rows) {
+    const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+    if (touch.clientY < mid) { insertBefore = row; break; }
+  }
+
+  // Move the src row in the DOM to show live position
+  if (insertBefore) {
+    if (ovDrag.srcEl.nextElementSibling !== insertBefore)
+      insertBefore.before(ovDrag.srcEl);
+  } else {
+    const addSec = body.querySelector(".ov-mgr-add-section");
+    const last   = addSec ? addSec.previousElementSibling : null;
+    if (last !== ovDrag.srcEl) {
+      if (addSec) addSec.before(ovDrag.srcEl);
+      else body.appendChild(ovDrag.srcEl);
+    }
+  }
+}
+
+function onOvDragEnd() {
+  if (!ovDrag.active) return;
+  document.removeEventListener("touchmove", onOvDragMove);
+  document.removeEventListener("touchend",  onOvDragEnd);
+
+  ovDrag.ghostEl.remove();
+  ovDrag.srcEl.classList.remove("ov-dragging");
+  ovDrag.active = false;
+
+  // Save the new DOM order
+  const body  = document.getElementById("ov-mgr-body");
+  const bases = Array.from(body.querySelectorAll(".ov-mgr-row[data-image-base]"))
+                     .map(r => r.dataset.imageBase);
+  const pack  = getCurrentPack();
+  saveOverviewOrder(pack.id, ovManagerPos, bases);
+  renderOverviewManager();
+}
+
+function openOverviewManager(pos) {
+  ovManagerPos = pos;
+  renderOverviewManager();
+  document.getElementById("overview-manager").classList.remove("hidden");
+}
+
+function closeOverviewManager() {
+  document.getElementById("overview-manager").classList.add("hidden");
+  ovManagerPos = null;
+}
+
+function renderOverviewManager() {
+  const pack = getCurrentPack();
+  if (!pack || !ovManagerPos) return;
+
+  document.getElementById("ov-mgr-pos").textContent = DISPLAY_NAMES[ovManagerPos] || ovManagerPos;
+
+  const body = document.getElementById("ov-mgr-body");
+  body.innerHTML = "";
+
+  const curDef  = getDefaultOverview(pack.id, ovManagerPos);
+  const isDefFn = ov => curDef && ov.imageBase === curDef.imageBase;
+
+  function makeStarBtn(ov) {
+    const star = document.createElement("button");
+    star.className   = "ov-mgr-star-btn" + (isDefFn(ov) ? " is-default" : "");
+    star.title       = isDefFn(ov) ? "Remove as double-tap default" : "Set as double-tap default";
+    star.textContent = "★";
+    star.addEventListener("click", () => {
+      setDefaultOverview(pack.id, ovManagerPos, isDefFn(ov) ? null : ov);
+      renderOverviewManager();
+    });
+    return star;
+  }
+
+  // ─ Hint ─
+  const hint = document.createElement("div");
+  hint.style.cssText = "font-size:12px;color:rgba(255,255,255,0.38);padding:2px 4px 10px;line-height:1.4;";
+  hint.textContent   = "★ default on double-tap  ·  hold ⠿ to reorder";
+  body.appendChild(hint);
+
+  // ─ Unified ordered list ─
+  const ovs = getOrderedOverviews(pack.id, ovManagerPos);
+  let prevWasStrategy = false;
+
+  ovs.forEach(ov => {
+    const isStrategy = /strategy/i.test(ov.label);
+
+    // Separator before the first strategy item that follows a non-strategy item
+    if (isStrategy && !prevWasStrategy && body.querySelector(".ov-mgr-row")) {
+      const sep = document.createElement("div");
+      sep.className = "ov-mgr-strategy-sep";
+      sep.innerHTML = "<span>Strategy</span>";
+      body.appendChild(sep);
+    }
+    prevWasStrategy = isStrategy;
+
+    const row = document.createElement("div");
+    row.dataset.imageBase = ov.imageBase;
+    row.dataset.origBase  = ov.imageBase;
+
+    if (ov._source === "custom") {
+      row.className = "ov-mgr-row" + (isStrategy ? " is-strategy" : "");
+      row.style.cssText = "flex-direction:column;align-items:stretch;gap:6px;";
+
+      const topRow = document.createElement("div");
+      topRow.style.cssText = "display:flex;gap:8px;align-items:center;";
+
+      const handle = document.createElement("div");
+      handle.className   = "ov-mgr-drag-handle";
+      handle.textContent = "⠿";
+      handle.addEventListener("touchstart", e => startOvDrag(e, row), { passive: false });
+
+      const info = document.createElement("div");
+      info.className = "ov-mgr-info";
+      info.innerHTML = `
+        <input class="ov-mgr-input ov-mgr-label-input" placeholder="Label" value="${escHtml(ov.label)}">
+        <input class="ov-mgr-input ov-mgr-input-base ov-mgr-base-input" placeholder="Image filename (no extension)" value="${escHtml(ov.imageBase || "")}">
+      `;
+
+      const delBtn = document.createElement("button");
+      delBtn.className   = "ov-mgr-del";
+      delBtn.textContent = "✕";
+      delBtn.addEventListener("click", () => {
+        const origBase = row.dataset.origBase;
+        const ovsList  = getCustomOverviews(pack.id, ovManagerPos);
+        const idx      = ovsList.findIndex(o => o.imageBase === origBase);
+        if (idx !== -1) {
+          if (isDefFn(ovsList[idx])) setDefaultOverview(pack.id, ovManagerPos, null);
+          ovsList.splice(idx, 1);
+          saveCustomOverviews(pack.id, ovManagerPos, ovsList);
+        }
+        renderOverviewManager();
+        renderTable();
+      });
+
+      topRow.appendChild(handle);
+      topRow.appendChild(makeStarBtn(ov));
+      topRow.appendChild(info);
+      topRow.appendChild(delBtn);
+      row.appendChild(topRow);
+
+      // Wire inputs
+      const labelInput = info.querySelector(".ov-mgr-label-input");
+      const baseInput  = info.querySelector(".ov-mgr-base-input");
+      labelInput.addEventListener("blur", () => {
+        const origBase = row.dataset.origBase;
+        const ovsList  = getCustomOverviews(pack.id, ovManagerPos);
+        const item     = ovsList.find(o => o.imageBase === origBase);
+        if (item) { item.label = labelInput.value.trim(); saveCustomOverviews(pack.id, ovManagerPos, ovsList); }
+        renderTable();
+      });
+      baseInput.addEventListener("blur", () => {
+        const origBase = row.dataset.origBase;
+        const newBase  = baseInput.value.trim();
+        const ovsList  = getCustomOverviews(pack.id, ovManagerPos);
+        const item     = ovsList.find(o => o.imageBase === origBase);
+        if (item) {
+          item.imageBase = newBase;
+          saveCustomOverviews(pack.id, ovManagerPos, ovsList);
+          row.dataset.imageBase = newBase;
+          row.dataset.origBase  = newBase;
+        }
+      });
+
+    } else {
+      // Built-in row (read-only)
+      row.className = "ov-mgr-row" + (isStrategy ? " is-strategy" : "");
+
+      const handle = document.createElement("div");
+      handle.className   = "ov-mgr-drag-handle";
+      handle.textContent = "⠿";
+      handle.addEventListener("touchstart", e => startOvDrag(e, row), { passive: false });
+
+      const info = document.createElement("div");
+      info.className = "ov-mgr-info";
+      info.innerHTML = `
+        <span class="ov-mgr-label-text">${escHtml(ov.label)}</span>
+        <span class="ov-mgr-base-text">${escHtml(ov.imageBase)}</span>
+      `;
+
+      row.appendChild(handle);
+      row.appendChild(makeStarBtn(ov));
+      row.appendChild(info);
+    }
+
+    body.appendChild(row);
+  });
+
+  // ─ Add new section ─
+  const addSection = document.createElement("div");
+  addSection.className = "ov-mgr-add-section";
+  addSection.innerHTML = `
+    <div class="ov-mgr-add-title">Add new overview</div>
+    <input id="ov-new-label" class="ov-mgr-input" placeholder="Label  (e.g. SB vs BB 3B 2.5x)">
+    <input id="ov-new-base"  class="ov-mgr-input ov-mgr-input-base" placeholder="Image filename without extension">
+    <button class="ov-mgr-add-btn" id="ov-add-btn">+ Add</button>
+  `;
+  body.appendChild(addSection);
+
+  document.getElementById("ov-add-btn").addEventListener("click", () => {
+    const label = document.getElementById("ov-new-label").value.trim();
+    const base  = document.getElementById("ov-new-base").value.trim();
+    if (!label) { document.getElementById("ov-new-label").focus(); return; }
+    const ovsList = getCustomOverviews(pack.id, ovManagerPos);
+    ovsList.push({ label, imageFolder: ovManagerPos, imageBase: base || label });
+    saveCustomOverviews(pack.id, ovManagerPos, ovsList);
+    renderOverviewManager();
+    renderTable();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════════════════
+function render() {
+  renderFormatPicker();
+  renderPackPicker();
+  renderTable();
+  renderBreadcrumb();
+  renderControls();
+}
+
+function renderFormatPicker() {
+  document.querySelectorAll("#format-picker button").forEach(btn =>
+    btn.classList.toggle("active", btn.dataset.format === state.format));
+}
+
+function renderPackPicker() {
+  const packs  = getEffectivePacks();
+  const picker = document.getElementById("pack-picker");
+  picker.innerHTML = "";
+  packs.filter(p => p.format === state.format).forEach(pack => {
+    const opt = document.createElement("option");
+    opt.value = pack.id; opt.textContent = pack.displayName;
+    if (pack.id === state.currentPackId) opt.selected = true;
+    picker.appendChild(opt);
+  });
+}
+
+function renderTable() {
+  const table = document.getElementById("table");
+  table.innerHTML = "";
+  const positions   = POSITIONS[state.format];
+  const currentNode = findNode(state.currentPath);
+  const isHU        = state.format === "headsUp";
+
+  const RX = 54, RY = 60;
+
+  positions.forEach((pos, i) => {
+    const angle = (2 * Math.PI * i) / positions.length - Math.PI / 2;
+    const bx = 50 + Math.cos(angle) * RX;
+    const by = 50 + Math.sin(angle) * RY;
+
+    const isDotAbove   = by < 50;
+    const DOT_Y_OFFSET = 15;
+    const dx = bx;
+    const dy = isDotAbove ? by - DOT_Y_OFFSET : by + DOT_Y_OFFSET;
+
+    // Step detection — handle plain "BTN" and cold-call "BTN_CC" in path
+    const stepIndex = state.currentPath.findIndex(s => pathPos(s) === pos);
+    const isLast    = stepIndex !== -1 && stepIndex === state.currentPath.length - 1;
+    const stepIsCC  = stepIndex !== -1 && pathIsCC(state.currentPath[stepIndex]);
+
+    // ── Decide: split button (CC | 3B) or normal button ──────────
+    const opener = state.currentPath.length === 1 ? pathPos(state.currentPath[0]) : null;
+    const useSplit = opener && canColdCall(pos, opener) && stepIndex === -1;
+
+    if (useSplit) {
+      if (wideActionButtons) {
+        // ── Wide mode: three full circles, always horizontal ─────
+        // CC to the left, position label in centre, 3B to the right.
+        // SB lives at x≈3% so we clamp the whole cluster rightward
+        // enough that the CC button stays on-screen (≥2% x).
+        const OFFSET = 11;        // % of table width between centre and each flanking button
+        const MIN_MARGIN = 2;     // minimum x% for any button centre
+        const clampedBX = Math.max(bx, MIN_MARGIN + OFFSET);  // shift cluster right if needed
+
+        const ccX = clampedBX - OFFSET,  ccY = by;
+        const tbX = clampedBX + OFFSET,  tbY = by;
+
+        // Helper: build a flanking circle button (label text only, no position name)
+        const makeSplitCircle = (cls, actionLbl, xPct, yPct, action) => {
+          const btn = document.createElement("button");
+          btn.className = `position-btn split-wide-action ${cls}`;
+          btn.dataset.pos = pos;
+          btn.style.setProperty("--x", xPct + "%");
+          btn.style.setProperty("--y", yPct + "%");
+          btn.textContent = actionLbl;
+          btn.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, action); });
+          table.appendChild(btn);
+        };
+
+        // Centre: dimmed position label (tapping = 3B fallback)
+        const center = document.createElement("button");
+        center.className = `position-btn split-wide-center`;
+        center.dataset.pos = pos;
+        center.style.setProperty("--x", clampedBX + "%");
+        center.style.setProperty("--y", by + "%");
+        center.textContent = DISPLAY_NAMES[pos] || pos;
+        center.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "3B"); });
+        table.appendChild(center);
+
+        makeSplitCircle("split-wide-cc", "CALL", ccX, ccY, "CC");
+        makeSplitCircle("split-wide-3b", "3B",   tbX, tbY, "3B");
+
+      } else {
+        // ── Compact mode: single circle split into two halves ─────
+        const wrap = document.createElement("div");
+        wrap.className = "split-pos-wrap";
+        wrap.dataset.pos = pos;
+        wrap.style.setProperty("--x", bx + "%");
+        wrap.style.setProperty("--y", by + "%");
+
+        const ccHalf = document.createElement("button");
+        ccHalf.className = "split-half split-cc";
+        const ccLbl = document.createElement("span");
+        ccLbl.className = "split-action-lbl"; ccLbl.textContent = "CC";
+        const ccPos = document.createElement("span");
+        ccPos.className = "split-pos-lbl"; ccPos.textContent = DISPLAY_NAMES[pos] || pos;
+        ccHalf.appendChild(ccLbl); ccHalf.appendChild(ccPos);
+        ccHalf.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "CC"); });
+
+        const tbHalf = document.createElement("button");
+        tbHalf.className = "split-half split-3b";
+        const tbLbl = document.createElement("span");
+        tbLbl.className = "split-action-lbl"; tbLbl.textContent = "3B";
+        const tbPos = document.createElement("span");
+        tbPos.className = "split-pos-lbl"; tbPos.textContent = DISPLAY_NAMES[pos] || pos;
+        tbHalf.appendChild(tbLbl); tbHalf.appendChild(tbPos);
+        tbHalf.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "3B"); });
+
+        wrap.appendChild(ccHalf);
+        wrap.appendChild(tbHalf);
+        table.appendChild(wrap);
+      }
+
+    } else {
+      // ── Normal position button ────────────────────────────────
+      const btn = document.createElement("button");
+      btn.className   = "position-btn";
+      btn.dataset.pos = pos;
+      if (isHU && pos === "BTN") btn.classList.add("hu-btn");
+      btn.style.setProperty("--x", bx + "%");
+      btn.style.setProperty("--y", by + "%");
+
+      if (isLast)               btn.classList.add("last-tap");
+      else if (stepIndex !== -1) btn.classList.add("in-path");
+      if (isLast && currentNode) btn.classList.add("has-chart-hint");
+
+      const label = document.createElement("span");
+      label.textContent = DISPLAY_NAMES[pos] || pos;
+      btn.appendChild(label);
+
+      if (stepIndex !== -1) {
+        const step = document.createElement("span");
+        step.className = "step";
+        step.textContent = "#" + (stepIndex + 1) + (stepIsCC ? " CC" : "");
+        btn.appendChild(step);
+      }
+
+      btn.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos); });
+      table.appendChild(btn);
+    }
+
+    // ── Dealer button (HU BTN only)
+    if (isHU && pos === "BTN") {
+      const dealer = document.createElement("div");
+      dealer.className = "dealer-btn";
+      dealer.textContent = "D";
+      // Place slightly to the lower-right of the BTN button
+      dealer.style.setProperty("--x", (bx + 6) + "%");
+      dealer.style.setProperty("--y", (by + 7) + "%");
+      table.appendChild(dealer);
+    }
+
+    // ── Overview dot
+    if (getOverviewsForPosition(pos).length > 0) {
+      const dot = document.createElement("button");
+      dot.className = "overview-dot";
+      dot.textContent = "⋯";
+      dot.style.setProperty("--dot-x", dx + "%");
+      dot.style.setProperty("--dot-y", dy + "%");
+      dot.addEventListener("click", e => toggleOverviewMenu(pos, dot, e));
+      table.appendChild(dot);
+    }
+  });
+
+  // ── Strategy button (HU centre)
+  if (isHU) {
+    const strat = document.createElement("button");
+    strat.className = "strategy-btn";
+    strat.textContent = "Strategy";
+    strat.style.setProperty("--x", "50%");
+    strat.style.setProperty("--y", "50%");
+    strat.addEventListener("click", e => {
+      e.stopPropagation();
+      const pack = getCurrentPack();
+      if (!pack) return;
+      openOverviewChart({ label: "Strategy", imageFolder: "", imageBase: "strategy" });
+    });
+    table.appendChild(strat);
+  }
+}
+
+function renderBreadcrumb() {
+  const el = document.getElementById("breadcrumb");
+  el.innerHTML = "";
+  if (state.currentPath.length === 0) {
+    const empty = document.createElement("span");
+    empty.className   = "empty";
+    empty.textContent = "Tap a position to begin";
+    el.appendChild(empty);
+    return;
+  }
+  for (let i = 1; i <= state.currentPath.length; i++) {
+    if (i > 1) {
+      const arrow = document.createElement("span");
+      arrow.className = "arrow"; arrow.textContent = "›";
+      el.appendChild(arrow);
+    }
+    const prefix  = state.currentPath.slice(0, i);
+    const node    = findNode(prefix);
+    const rawStep = prefix[i - 1];
+    const posName = DISPLAY_NAMES[pathPos(rawStep)] || pathPos(rawStep);
+    const fallback = posName + (pathIsCC(rawStep) ? " CC" : "");
+    const text    = node ? node.title : fallback;
+    const span    = document.createElement("span");
+    span.className = "segment"; span.textContent = text;
+    el.appendChild(span);
+  }
+}
+
+function renderControls() {
+  const empty    = state.currentPath.length === 0;
+  const hasMatch = !!findNode(state.currentPath);
+  const viewBtn  = document.getElementById("view-btn");
+  viewBtn.disabled = !hasMatch;
+  viewBtn.classList.toggle("has-match", hasMatch);
+  document.getElementById("back-btn").disabled  = empty;
+  document.getElementById("reset-btn").disabled = empty;
+}
+
+// ─── Sequence helpers ────────────────────────────────────────────
+// Returns the node for the "next action" — the previous actor responding
+// to whatever the current hero does. e.g. path [UTG,BB] → [UTG,BB,UTG].
+function getNextNode() {
+  const node = state.activeNode;
+  if (!node || !node.path || node.path.length < 2) return null;
+  const p        = node.path;
+  const nextPath = [...p, p[p.length - 2]];
+  return findNode(nextPath);
+}
+
+// ─── Title formatting ─────────────────────────────────────────────
+// Applies display-friendly renaming rules without touching data.js:
+//   "X vs Y open"  → "X 3B vs Y"
+//   "X vs Y 3bet"  → "X vs Y 3B"
+//   "X vs Y 4bet"  → "X vs Y 4B"  (same for 5B etc.)
+//   Appends "· {size}" when a specific variant is active.
+function formatModalTitle(title, variantLabel) {
+  if (!title) return '';
+  let t = title;
+
+  // "X vs Y open" → "X 3B vs Y"
+  t = t.replace(/^(.+?) vs (.+?) open$/i, '$1 3B vs $2');
+
+  // "Xbet" → "XB"  (handles 3bet/4bet/5bet anywhere in the string)
+  t = t.replace(/\b(\d)bet\b/gi, (_, n) => `${n}B`);
+
+  if (variantLabel) t += ' · ' + variantLabel;
+  return t;
+}
+
+function makeSeqPanel(caption, chart) {
+  const panel = document.createElement("div");
+  panel.className = "seq-panel";
+
+  const cap = document.createElement("div");
+  cap.className   = "seq-caption";
+  cap.textContent = caption;
+  panel.appendChild(cap);
+
+  const wrap = document.createElement("div");
+  wrap.className = "seq-img-wrap";
+
+  if (chart) {
+    const img  = document.createElement("img");
+    img.alt      = caption;
+    img.decoding = "async";
+    img.onerror  = () => {
+      wrap.innerHTML = `<div class="seq-missing"><span>Image not found</span><code>${escHtml(chart.src)}</code></div>`;
+    };
+    img.src = chart.src;
+    wrap.appendChild(img);
+  } else {
+    wrap.innerHTML = `<div class="seq-missing"><span>No chart found</span></div>`;
+  }
+
+  panel.appendChild(wrap);
+  return panel;
+}
+
+function renderSequenceArea(mainCharts, nextNode) {
+  const area = document.getElementById("sequence-area");
+  area.innerHTML = "";
+
+  const mainChart       = mainCharts[state.activeVariantIndex] || mainCharts[0];
+  const mainVariant     = mainCharts.length > 1 ? (mainChart?.label || null) : null;
+  const nextCharts      = nextNode ? getChartsForNode(nextNode) : [];
+  const nextChart       = nextCharts[0] || null;
+
+  area.appendChild(makeSeqPanel(formatModalTitle(state.activeNode.title, mainVariant), mainChart));
+  area.appendChild(makeSeqPanel(nextNode ? formatModalTitle(nextNode.title, null) : "—", nextChart));
+}
+
+function renderCompareArea(charts) {
+  const area = document.getElementById("compare-area");
+  area.innerHTML = "";
+  charts.forEach(chart => {
+    area.appendChild(makeSeqPanel(chart.label || formatModalTitle(state.activeNode.title), chart));
+  });
+}
+
+function renderModal() {
+  if (!state.activeNode) return;
+
+
+  const charts   = getChartsForNode(state.activeNode);
+  const nextNode = showSequence ? getNextNode() : null;
+  const inSeq    = !!nextNode;
+
+  // Active chart + variant label (used for title and filename)
+  const chart        = charts[state.activeVariantIndex] || charts[0];
+  const variantLabel = charts.length > 1 ? (chart?.label || null) : null;
+
+  // Formatted title and filename — shown in modal header
+  document.getElementById("modal-title").textContent    = formatModalTitle(state.activeNode.title, variantLabel);
+  document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
+
+  // ── Variant tabs + optional Split button ──
+  const tabs = document.getElementById("variant-tabs");
+  tabs.innerHTML = "";
+  if (charts.length > 1) {
+    charts.forEach((c, i) => {
+      const b = document.createElement("button");
+      b.textContent = c.label || ("Chart " + (i + 1));
+      if (i === state.activeVariantIndex) b.classList.add("active");
+      b.addEventListener("click", e => {
+        e.stopPropagation();
+        state.activeVariantIndex = i;
+        showVariantCompare = false;
+        resetZoom();
+        renderModal();
+      });
+      tabs.appendChild(b);
+    });
+
+    // ── "Set as default" button — only when C4B + Squeeze tabs both present
+    const hasBothSituations =
+      charts.some(c => c.situation === "c4b") &&
+      charts.some(c => c.situation === "squeeze");
+    if (hasBothSituations && state.activeNode) {
+      const curChart = charts[state.activeVariantIndex] || charts[0];
+      const curSit   = curChart?.situation || "c4b";
+      const storedDef = getDefaultSit(state.activeNode.path);
+      const isAlreadyDefault = storedDef === curSit;
+
+      const defBtn = document.createElement("button");
+      defBtn.className   = "sit-default-btn" + (isAlreadyDefault ? " is-default" : "");
+      defBtn.textContent = isAlreadyDefault ? "★ Default" : "☆ Set default";
+      defBtn.title       = isAlreadyDefault
+        ? `${curSit === "c4b" ? "C4B" : "Squeeze"} is the default for this node`
+        : `Set ${curSit === "c4b" ? "C4B" : "Squeeze"} as the default tab for this node`;
+      defBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        setDefaultSit(state.activeNode.path, curSit);
+        renderModal();
+      });
+      tabs.appendChild(defBtn);
+    }
+
+    // Split / side-by-side toggle — only when not in sequence mode
+    if (!inSeq) {
+      const splitBtn = document.createElement("button");
+      splitBtn.className   = "variant-compare-btn" + (showVariantCompare ? " active" : "");
+      splitBtn.textContent = showVariantCompare ? "⊟ Split" : "⊟ Split";
+      splitBtn.title       = "View all variants side by side";
+      splitBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        showVariantCompare = !showVariantCompare;
+        renderModal();
+      });
+      tabs.appendChild(splitBtn);
+    }
+
+    tabs.style.display = "flex";
+  } else {
+    showVariantCompare = false;   // auto-off if only 1 chart
+    tabs.style.display = "none";
+  }
+
+  const zoomArea    = document.getElementById("zoom-area");
+  const seqArea     = document.getElementById("sequence-area");
+  const compareArea = document.getElementById("compare-area");
+
+  if (inSeq) {
+    // ── Sequence mode: two charts side by side, no zoom ──
+    zoomArea.classList.add("hidden");
+    compareArea.classList.add("hidden");
+    seqArea.classList.remove("hidden");
+    renderSequenceArea(charts, nextNode);
+  } else if (showVariantCompare && charts.length > 1) {
+    // ── Compare mode: all variants side by side ──
+    zoomArea.classList.add("hidden");
+    seqArea.classList.add("hidden");
+    compareArea.classList.remove("hidden");
+    renderCompareArea(charts);
+  } else {
+    // ── Normal mode: single chart with zoom ──
+    seqArea.classList.add("hidden");
+    compareArea.classList.add("hidden");
+    zoomArea.classList.remove("hidden");
+
+    const img = document.getElementById("chart-img");
+    const ph  = document.getElementById("chart-placeholder");
+
+    img.onerror = () => {
+      img.classList.add("hidden");
+      ph.classList.remove("hidden");
+      document.getElementById("ph-title").textContent = "Image not found";
+      document.getElementById("ph-path").textContent  = chart ? chart.src : "—";
+    };
+    img.onload = () => {
+      img.classList.remove("hidden");
+      ph.classList.add("hidden");
+      positionFreqBar();
+    };
+
+    if (chart) { img.src = chart.src; img.alt = state.activeNode.title; }
+  } // end normal mode
+
+  renderFreqBar();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Frequencies — per-chart Fold / Call / Raise annotation
+// ═══════════════════════════════════════════════════════════════
+function getCurrentChartKey() {
+  const charts = state.activeNode ? getChartsForNode(state.activeNode) : [];
+  const chart  = charts[state.activeVariantIndex] || charts[0];
+  return chart ? "rn_freq_" + chart.src : null;
+}
+
+function loadFreqValues(key) {
+  try { return key ? (JSON.parse(localStorage.getItem(key)) || {}) : {}; } catch { return {}; }
+}
+
+function saveFreqValues(key, vals) {
+  try {
+    if (key) {
+      const clean = {};
+      if (vals.fold  !== "" && vals.fold  != null) clean.fold  = vals.fold;
+      if (vals.call  !== "" && vals.call  != null) clean.call  = vals.call;
+      if (vals.raise !== "" && vals.raise != null) clean.raise = vals.raise;
+      if (Object.keys(clean).length) localStorage.setItem(key, JSON.stringify(clean));
+      else localStorage.removeItem(key);
+    }
+  } catch {}
+}
+
+function renderFreqBar() {
+  const bar = document.getElementById("freq-bar");
+  if (!bar) return;
+  const key = getCurrentChartKey();
+  const v   = loadFreqValues(key);
+  const parts = [];
+  if (v.fold  != null) parts.push({ label: "Fold",  val: v.fold,  cls: "fold"  });
+  if (v.call  != null) parts.push({ label: "Call",  val: v.call,  cls: "call"  });
+  if (v.raise != null) parts.push({ label: "Raise", val: v.raise, cls: "raise" });
+  if (!parts.length) { bar.classList.add("hidden"); bar.innerHTML = ""; return; }
+  bar.classList.remove("hidden");
+  bar.innerHTML = parts.map((p, i) =>
+    (i > 0 ? '<span class="freq-sep">·</span>' : "") +
+    `<span class="freq-action">${p.label}</span> <span class="freq-val ${p.cls}">${p.val}%</span>`
+  ).join("");
+}
+
+function positionFreqBar() {
+  const img  = document.getElementById("chart-img");
+  const bar  = document.getElementById("freq-bar");
+  const area = document.getElementById("zoom-area");
+  if (!img || !bar || !area) return;
+  const imgRect  = img.getBoundingClientRect();
+  const areaRect = area.getBoundingClientRect();
+  const offset   = imgRect.top - areaRect.top - 26;
+  bar.style.top  = Math.max(8, offset) + "px";
+}
+
+function openFreqPanel() {
+  const panel = document.getElementById("freq-panel");
+  const btn   = document.getElementById("freq-btn");
+  const key   = getCurrentChartKey();
+  const v     = loadFreqValues(key);
+  document.getElementById("freq-fold").value  = v.fold  ?? "";
+  document.getElementById("freq-call").value  = v.call  ?? "";
+  document.getElementById("freq-raise").value = v.raise ?? "";
+  panel.classList.remove("hidden");
+  btn.classList.add("active");
+}
+
+function closeFreqPanel() {
+  document.getElementById("freq-panel").classList.add("hidden");
+  document.getElementById("freq-btn").classList.remove("active");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Help Modal
+// ═══════════════════════════════════════════════════════════════
+function openHelpModal() {
+  const modal = document.getElementById("help-modal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+function closeHelpModal() {
+  const modal = document.getElementById("help-modal");
+  if (modal) modal.classList.add("hidden");
+}
+
+document.getElementById("help-btn").addEventListener("click", e => {
+  e.stopPropagation();
+  openHelpModal();
+});
+
+document.getElementById("close-help").addEventListener("click", e => {
+  e.stopPropagation();
+  closeHelpModal();
+});
+
+document.getElementById("help-modal").addEventListener("click", e => {
+  // Close modal when clicking the background
+  if (e.target === document.getElementById("help-modal")) {
+    closeHelpModal();
+  }
+});
+
+document.getElementById("freq-btn").addEventListener("click", e => {
+  e.stopPropagation();
+  const panel = document.getElementById("freq-panel");
+  panel.classList.contains("hidden") ? openFreqPanel() : closeFreqPanel();
+});
+
+["freq-fold", "freq-call", "freq-raise"].forEach(id => {
+  document.getElementById(id).addEventListener("input", e => {
+    e.stopPropagation();
+    const key = getCurrentChartKey();
+    saveFreqValues(key, {
+      fold:  document.getElementById("freq-fold").value.trim()  || null,
+      call:  document.getElementById("freq-call").value.trim()  || null,
+      raise: document.getElementById("freq-raise").value.trim() || null,
+    });
+    renderFreqBar();
+  });
+  document.getElementById(id).addEventListener("click", e => e.stopPropagation());
+});
+
+document.getElementById("freq-clear-btn").addEventListener("click", e => {
+  e.stopPropagation();
+  const key = getCurrentChartKey();
+  try { if (key) localStorage.removeItem(key); } catch {}
+  document.getElementById("freq-fold").value  = "";
+  document.getElementById("freq-call").value  = "";
+  document.getElementById("freq-raise").value = "";
+  renderFreqBar();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Zoom — mouse wheel
+// ═══════════════════════════════════════════════════════════════
+document.getElementById("zoom-area").addEventListener("wheel", e => {
+  e.preventDefault();
+  const factor   = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+  const newScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Z.scale * factor));
+  if (newScale === Z.scale) return;
+  applyCenterZoom(newScale);
+}, { passive: false });
+
+// ═══════════════════════════════════════════════════════════════
+// Zoom — mouse drag (pan)
+// ═══════════════════════════════════════════════════════════════
+let mouse = { down: false, startX: 0, startY: 0, startTx: 0, startTy: 0 };
+
+document.getElementById("zoom-area").addEventListener("mousedown", e => {
+  if (Z.scale <= 1) return;
+  mouse = { down: true, startX: e.clientX, startY: e.clientY, startTx: Z.tx, startTy: Z.ty };
+  document.getElementById("zoom-wrapper").style.cursor = "grabbing";
+  e.preventDefault();
+});
+
+document.addEventListener("mousemove", e => {
+  if (!mouse.down) return;
+  Z.tx = mouse.startTx + (e.clientX - mouse.startX);
+  Z.ty = mouse.startTy + (e.clientY - mouse.startY);
+  applyZoom();
+});
+
+document.addEventListener("mouseup", () => {
+  if (mouse.down) {
+    mouse.down = false;
+    if (Z.scale > 1) document.getElementById("zoom-wrapper").style.cursor = "grab";
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Zoom — double-click to zoom in / reset
+// ═══════════════════════════════════════════════════════════════
+document.getElementById("zoom-area").addEventListener("dblclick", e => {
+  e.stopPropagation(); // prevent double-click from triggering close
+  if (Z.scale > 1) { resetZoom(); return; }
+  applyCenterZoom(2.5);
+});
+
+// ═══════════════════════════════════════════════════════════════
+// Zoom — touch (pinch + pan + double-tap reset)
+// ═══════════════════════════════════════════════════════════════
+let touch = {
+  isPanning: false, panStartX: 0, panStartY: 0, panStartTx: 0, panStartTy: 0,
+  pinch: null, lastTapTime: 0,
+  isDragging: false, dragStartX: 0, dragStartY: 0,
+};
+
+document.getElementById("zoom-area").addEventListener("touchstart", e => {
+  if (e.touches.length === 2) {
+    e.preventDefault();
+    touch.isPanning = false;
+    const t0 = e.touches[0], t1 = e.touches[1];
+    const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+    const rect = document.getElementById("zoom-area").getBoundingClientRect();
+    touch.pinch = {
+      dist: Math.sqrt(dx*dx + dy*dy), scale: Z.scale, tx: Z.tx, ty: Z.ty,
+      midX: (t0.clientX + t1.clientX)/2 - rect.left,
+      midY: (t0.clientY + t1.clientY)/2 - rect.top,
+    };
+  } else if (e.touches.length === 1) {
+    touch.pinch     = null;
+    touch.isDragging = false;
+    touch.dragStartX = e.touches[0].clientX;
+    touch.dragStartY = e.touches[0].clientY;
+    const now = Date.now();
+    if (now - touch.lastTapTime < 320) { resetZoom(); touch.lastTapTime = 0; return; }
+    touch.lastTapTime = now;
+    if (Z.scale > 1) {
+      touch.isPanning  = true;
+      touch.panStartX  = e.touches[0].clientX; touch.panStartY  = e.touches[0].clientY;
+      touch.panStartTx = Z.tx; touch.panStartTy = Z.ty;
+    }
+  }
+}, { passive: false });
+
+document.getElementById("zoom-area").addEventListener("touchmove", e => {
+  if (e.touches.length === 2 && touch.pinch) {
+    e.preventDefault();
+    const t0 = e.touches[0], t1 = e.touches[1];
+    const dx = t0.clientX - t1.clientX, dy = t0.clientY - t1.clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const { pinch } = touch;
+    const newScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, pinch.scale * dist / pinch.dist));
+    applyCenterZoom(newScale);
+  } else if (e.touches.length === 1 && touch.isPanning) {
+    e.preventDefault();
+    Z.tx = touch.panStartTx + (e.touches[0].clientX - touch.panStartX);
+    Z.ty = touch.panStartTy + (e.touches[0].clientY - touch.panStartY);
+    applyZoom();
+  } else if (e.touches.length === 1) {
+    // Track drag to distinguish tap from scroll
+    const dx = e.touches[0].clientX - touch.dragStartX;
+    const dy = e.touches[0].clientY - touch.dragStartY;
+    if (Math.sqrt(dx*dx + dy*dy) > 8) touch.isDragging = true;
+  }
+}, { passive: false });
+
+document.getElementById("zoom-area").addEventListener("touchend", e => {
+  if (e.touches.length < 2) touch.pinch = null;
+  if (e.touches.length === 0) {
+    touch.isPanning = false;
+    // Tap to close (if not dragging — works at any zoom level)
+    if (!touch.isDragging) {
+      closeModal();
+    }
+    touch.isDragging = false;
+  }
+  if (Z.scale <= 1) { applyCenterZoom(Z.scale); }
+}, { passive: true });
+
+// ═══════════════════════════════════════════════════════════════
+// Chart modal — click anywhere to close (when not zoomed)
+// Mouse/desktop: click on modal background closes it
+// ═══════════════════════════════════════════════════════════════
+document.getElementById("chart-modal").addEventListener("click", e => {
+  // Mouse drag doesn't fire a click event, so this is always a genuine tap/click
+  closeModal();
+});
+
+// Close button — stopPropagation so modal click handler doesn't fire twice
+document.getElementById("close-modal").addEventListener("click", e => {
+  e.stopPropagation();
+  closeModal();
+});
+
+// Modal header — stopPropagation so clicking title area doesn't close
+document.querySelector("#chart-modal .modal-head").addEventListener("click", e => {
+  e.stopPropagation();
+});
+
+// Variant tabs area — stopPropagation
+document.getElementById("variant-tabs").addEventListener("click", e => {
+  e.stopPropagation();
+});
+
+// Freq panel — block ALL clicks from reaching the modal close handler
+document.getElementById("freq-panel").addEventListener("click", e => {
+  e.stopPropagation();
+});
+document.getElementById("freq-panel").addEventListener("touchend", e => {
+  e.stopPropagation();
+}, { passive: true });
+
+// ═══════════════════════════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════════════════════════
+function init() {
+  const packs     = getEffectivePacks();
+  const firstPack = packs.find(p => p.format === state.format);
+  state.currentPackId = firstPack ? firstPack.id : null;
+
+  // Load persisted toggle states
+  try { wideActionButtons = localStorage.getItem("rn_wide_split") === "true"; } catch {}
+
+  // Sync toggles to current state
+  document.getElementById("auto-reset-toggle").checked = autoResetOnFeltTap;
+  document.getElementById("wide-split-toggle").checked = wideActionButtons;
+
+  document.querySelectorAll("#format-picker button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (state.format === btn.dataset.format) return;
+      state.format = btn.dataset.format;
+      const pack = getEffectivePacks().find(p => p.format === state.format);
+      state.currentPackId = pack ? pack.id : null;
+      resetPath(); render();
+    });
+  });
+
+  document.getElementById("pack-picker").addEventListener("change", e => {
+    state.currentPackId = e.target.value;
+    resetPath(); render();
+  });
+
+  document.getElementById("view-btn").addEventListener("click",  viewChart);
+  document.getElementById("back-btn").addEventListener("click",  back);
+  document.getElementById("reset-btn").addEventListener("click", resetPath);
+
+  // Felt tap → reset (buttons call stopPropagation so only genuine felt clicks reach here)
+  document.getElementById("table").addEventListener("click", () => {
+    if (!autoResetOnFeltTap) return;
+    resetPath();
+  });
+
+  document.getElementById("auto-reset-toggle").addEventListener("change", e => {
+    autoResetOnFeltTap = e.target.checked;
+  });
+
+  document.getElementById("sequence-toggle").addEventListener("change", e => {
+    showSequence = e.target.checked;
+    // Re-render modal immediately if it's open
+    if (!document.getElementById("chart-modal").classList.contains("hidden")) {
+      resetZoom();
+      renderModal();
+    }
+  });
+
+  document.getElementById("wide-split-toggle").addEventListener("change", e => {
+    wideActionButtons = e.target.checked;
+    try { localStorage.setItem("rn_wide_split", wideActionButtons); } catch {}
+    render();
+  });
+
+  // Overview manager close
+  document.getElementById("ov-mgr-close-btn").addEventListener("click", e => {
+    e.stopPropagation();
+    closeOverviewManager();
+  });
+
+  // Close overview manager when clicking its backdrop
+  document.getElementById("overview-manager").addEventListener("click", e => {
+    if (e.target === e.currentTarget) closeOverviewManager();
+  });
+
+  // Close overview menu on any outside click
+  document.addEventListener("click",      () => closeOverviewMenu());
+  document.addEventListener("touchstart", () => closeOverviewMenu(), { passive: true });
+
+  render();
+}
+
+init();
+</script>
+</body>
+</html>
