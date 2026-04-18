@@ -1641,6 +1641,11 @@
               <td><code>Actor_C4B-3Bpos-Opener(-size).png</code></td>
             </tr>
             <tr>
+              <td><strong>vs C4B</strong><br>(opener or 3-better faces C4B)<br><em>tap BTN or SB again after BB C4Bs</em></td>
+              <td><code>BTN-SB-BB_C4B.png</code><br><code>SB-BTN-BB_C4B.png</code></td>
+              <td><code>Actor-Other-C4Better_C4B(-size).png</code></td>
+            </tr>
+            <tr>
               <td><strong>Squeeze</strong><br>(we squeeze, 2+ callers)</td>
               <td><code>BB_Squeeze-BTN-UTG.png</code><br><code>BB_Squeeze-BTN-UTG-13bb.png</code></td>
               <td><code>Actor_Squeeze-Caller-Opener(-size).png</code></td>
@@ -1948,11 +1953,22 @@ function findNode(path) {
 // Caller_CC-Opener naming branch.
 function openChartForPath(path) {
   let node = findNode(path);
+
+  // Synthetic node: 2-step CC path (e.g. ["UTG","BTN_CC"]) — no data.js entry needed
   if (!node && path.length === 2 && pathIsCC(path[path.length - 1])) {
     const caller = pathPos(path[path.length - 1]);
     const opener = pathPos(path[0]);
     node = { path, imageFolder: caller, title: `${caller} CC vs ${opener}` };
   }
+
+  // Synthetic node: vs C4B — 4-step path built when opener/3-better re-taps a C4B node
+  // path = [opener, threebetter, c4better, responder]
+  if (!node && path.length === 4 && path.every(s => !pathIsCC(s))) {
+    const responder = pathPos(path[3]);
+    const c4better  = pathPos(path[2]);
+    node = { path, imageFolder: responder, title: `${responder} vs ${c4better} C4B` };
+  }
+
   if (!node) return false;
   state.activeNode = node;
   state.activeVariantIndex = 0;
@@ -2082,6 +2098,15 @@ function getChartsForNode(node) {
     if (m.length > 0) return makeCharts(m, base);
   }
 
+  // vs 3B: path.length === 3, no _CC, positions[2] === positions[0] (opener faces 3B)
+  // Opener-3Better_3B(-size)
+  if (path.length === 3 && !pathIsCC(path[1]) && !pathIsCC(path[2]) && positions[2] === positions[0]) {
+    const [opener, threebetter] = positions;
+    const base = `${opener}-${threebetter}_3B`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+  }
+
   // C4B: path.length === 3, no _CC, c4b ≠ opener → C4B_C4B-3Bpos-Opener(-size)
   // Also collect any matching Squeeze images for the same 3 positions and combine as tabs.
   if (path.length === 3 && !pathIsCC(path[1]) && positions[2] !== positions[0]) {
@@ -2120,6 +2145,21 @@ function getChartsForNode(node) {
     }
   }
 
+  // vs C4B: virtual 4-step path created when opener or 3-better re-taps from a C4B node.
+  // Naming: Actor-OtherParticipant-C4Better_C4B(-size)
+  //   opener  re-taps → Opener-3Better-C4Better_C4B  (e.g. BTN-SB-BB_C4B)
+  //   3-better re-taps → 3Better-Opener-C4Better_C4B (e.g. SB-BTN-BB_C4B)
+  if (path.length === 4 && path.every(s => !pathIsCC(s))) {
+    const [opener, threebetter, c4better, responder] = positions;
+    let base;
+    if (responder === opener)      base = `${opener}-${threebetter}-${c4better}_C4B`;
+    else if (responder === threebetter) base = `${threebetter}-${opener}-${c4better}_C4B`;
+    if (base) {
+      const m = findWithSizes(base);
+      if (m.length > 0) return makeCharts(m, base);
+    }
+  }
+
   // ── OLD-STYLE fallback (imageBase + underscore-variant or dash-size) ─
   return getOldStyleCharts(node, pack, manifest);
 }
@@ -2148,7 +2188,11 @@ function getOldStyleCharts(node, pack, manifest) {
       if (noExt.startsWith(prefix + "-")) return !otherBases.has(noExt);
       return false;
     });
-    if (matches.length === 1) return [{ label: null, src: "images/" + matches[0] }];
+    if (matches.length === 1) {
+      const noExt  = matches[0].replace(/\.[^.]+$/, "");
+      const label  = noExt === prefix ? null : noExt.slice(prefix.length + 1);
+      return [{ label, src: "images/" + matches[0] }];
+    }
     if (matches.length > 1) {
       const varOrder = node.variants || [];
       matches.sort((a, b) => {
@@ -2188,30 +2232,45 @@ function handlePositionTap(pos, action) {
   lastTap = { pos, time: isDouble ? 0 : now };
 
   if (isDouble) {
-    // Split-button double-tap: the first tap already pushed the step and re-rendered,
-    // replacing the split buttons with the normal position button (which may sit at a
-    // different screen position in wide mode).  Detect this by checking whether the
-    // last step in the path already belongs to this position — if so, just open the
-    // chart without pushing again.
     const lastStep = state.currentPath[state.currentPath.length - 1];
+    const noCC     = state.currentPath.every(s => !pathIsCC(s));
+
+    // Split-button double-tap: first tap already pushed the step (last step = this pos)
     if (lastStep && pathPos(lastStep) === pos) {
       openChartForPath(state.currentPath);
       return;
     }
 
-    // "Standalone" double-tap: this position is the only one in the path
+    // vs-action double-tap: pos is already in path (opener/3-better re-entering)
+    // e.g. UTG double-tap from ["UTG","CO"] → vs 3B; BTN from ["BTN","SB","BB"] → vs C4B
+    if (state.currentPath.length >= 2 && noCC &&
+        state.currentPath.some(s => pathPos(s) === pos)) {
+      openChartForPath([...state.currentPath, pos]);
+      return;
+    }
+
+    // Standalone double-tap: this position is the only one in the path
     const isStandalone = state.currentPath.length === 1 && pathPos(state.currentPath[0]) === pos;
     if (isStandalone) {
       const pack  = getCurrentPack();
       const defOv = pack ? getDefaultOverview(pack.id, pos) : null;
       if (defOv) { openOverviewChart(defOv); return; }
     }
-    // Open the chart for the full current path
     openChartForPath(state.currentPath);
     return;
   }
-  // Guard: a position already in the path cannot be added again
-  if (state.currentPath.some(s => pathPos(s) === pos)) return;
+
+  // Guard: a position already in the path cannot be added again.
+  // Exception: opener/3-better re-entering a non-CC path opens a vs-action chart
+  // (vs 3B from 2-step, vs C4B from 3-step) without changing the main path.
+  if (state.currentPath.some(s => pathPos(s) === pos)) {
+    const noCC = state.currentPath.every(s => !pathIsCC(s));
+    const len  = state.currentPath.length;
+    if (noCC && (len === 2 || len === 3)) {
+      openChartForPath([...state.currentPath, pos]);
+    }
+    return;
+  }
 
   const step = (action === "CC") ? pos + "_CC" : pos;
   state.currentPath.push(step);
@@ -2796,6 +2855,24 @@ function renderTable() {
   }
 }
 
+// Derive the short action label for a step in the path.
+// stepIdx 0 = opener (RFI), 1 = 3B/CC, 2 = 4B (re-enter) / C4B (new pos) / Sq (after CC)
+function getStepActionLabel(path, stepIdx) {
+  if (stepIdx === 0) return "RFI";
+  const step    = path[stepIdx];
+  const pos     = pathPos(step);
+  if (stepIdx === 1) return pathIsCC(step) ? "CC" : "3B";
+  if (stepIdx === 2) {
+    if (pathIsCC(path[1]))               return "Sq";   // middle CC → squeezer
+    if (pathPos(path[0]) === pos)         return "4B";   // opener re-enters → 4bet
+    return "C4B";                                        // new player → cold 4-bet
+  }
+  // step 3+ (vs-4B responses, 5-bets, etc.)
+  if (pathPos(path[1]) === pos) return "5B";
+  if (pathPos(path[0]) === pos) return "4B";
+  return "";
+}
+
 function renderBreadcrumb() {
   const el = document.getElementById("breadcrumb");
   el.innerHTML = "";
@@ -2806,19 +2883,72 @@ function renderBreadcrumb() {
     el.appendChild(empty);
     return;
   }
+
   for (let i = 1; i <= state.currentPath.length; i++) {
     if (i > 1) {
       const arrow = document.createElement("span");
       arrow.className = "arrow"; arrow.textContent = "›";
       el.appendChild(arrow);
     }
+
     const prefix  = state.currentPath.slice(0, i);
+    const stepIdx = i - 1;
     const node    = findNode(prefix);
-    const rawStep = prefix[i - 1];
+    const rawStep = prefix[stepIdx];
     const posName = DISPLAY_NAMES[pathPos(rawStep)] || pathPos(rawStep);
-    const fallback = posName + (pathIsCC(rawStep) ? " CC" : "");
-    const text    = node ? node.title : fallback;
-    const span    = document.createElement("span");
+    const action  = getStepActionLabel(state.currentPath, stepIdx);
+
+    // ── Size label ─────────────────────────────────────────────
+    // Priority 1: active modal variant (when modal is open on this or a deeper node)
+    // Priority 2: first non-"Base" label found in the node's chart list.
+    // Note: do NOT guard on charts.length > 1 — a node may have exactly one sized
+    // file (e.g. SB_3B-UTG-11bb.png with no base companion), giving length === 1
+    // with a non-null label that should still be shown.
+    let sizeLabel = null;
+    if (node) {
+      if (state.activeNode && state.activeNode.path) {
+        const anp = state.activeNode.path;
+        if (anp.length >= prefix.length && prefix.every((p, j) => p === anp[j])) {
+          const charts = getChartsForNode(state.activeNode);
+          const c = charts[state.activeVariantIndex] || charts[0];
+          if (c?.label && c.label !== "Base") sizeLabel = c.label;
+        }
+      }
+      if (!sizeLabel) {
+        const charts = getChartsForNode(node);
+        const sized  = charts.find(c => c.label && c.label !== "Base");
+        if (sized) sizeLabel = sized.label;
+      }
+    }
+
+    // ── Build segment text ──────────────────────────────────────
+    // Format: "{posName} {action} {size} vs {context}"
+    // The "vs {context}" tail is taken from the existing node title so we preserve
+    // opponent info (e.g. "vs UTG RFI") without duplicating it.
+    let text;
+    if (stepIdx === 0) {
+      // Opener is always "UTG RFI" — no size shown for RFI nodes
+      text = posName + " RFI";
+    } else {
+      // Build: position + action + optional size
+      const parts = [posName, action];
+      if (sizeLabel) parts.push(sizeLabel);
+
+      // Append " vs {context}" from node title if present
+      if (node) {
+        const cleaned = (node.title || "").replace(/\bopen\b/gi, "RFI");
+        const vsIdx   = cleaned.indexOf(" vs ");
+        if (vsIdx !== -1) {
+          text = parts.join(" ") + cleaned.slice(vsIdx);
+        } else {
+          text = parts.join(" ");
+        }
+      } else {
+        text = parts.join(" ");
+      }
+    }
+
+    const span = document.createElement("span");
     span.className = "segment"; span.textContent = text;
     el.appendChild(span);
   }
@@ -2918,6 +3048,7 @@ function renderCompareArea(charts) {
 function renderModal() {
   if (!state.activeNode) return;
 
+  renderBreadcrumb();   // keep size label in sync when variant tabs are switched
 
   const charts   = getChartsForNode(state.activeNode);
   const nextNode = showSequence ? getNextNode() : null;
