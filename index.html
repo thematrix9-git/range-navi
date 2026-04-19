@@ -1961,6 +1961,22 @@ function openChartForPath(path) {
     node = { path, imageFolder: caller, title: `${caller} CC vs ${opener}` };
   }
 
+  // Synthetic node: vs Squeeze — 4-step path, CC at index 1 (opener or caller responds)
+  // path = [opener, caller_CC, squeezer, responder]
+  if (!node && path.length === 4 && pathIsCC(path[1])) {
+    const responder = pathPos(path[3]);
+    const squeezer  = pathPos(path[2]);
+    node = { path, imageFolder: responder, title: `${responder} vs ${squeezer} Squeeze` };
+  }
+
+  // Synthetic node: vs 4B — alternating 4-step path [A,B,A,B] (3-better faces opener 4B)
+  if (!node && path.length === 4 && path.every(s => !pathIsCC(s))) {
+    const p = path.map(pathPos);
+    if (p[2] === p[0] && p[3] === p[1]) {
+      node = { path, imageFolder: p[3], title: `${p[3]} vs ${p[2]} 4B` };
+    }
+  }
+
   // Synthetic node: vs C4B — 4-step path built when opener/3-better re-taps a C4B node
   // path = [opener, threebetter, c4better, responder]
   if (!node && path.length === 4 && path.every(s => !pathIsCC(s))) {
@@ -2088,6 +2104,8 @@ function getChartsForNode(node) {
     const base = `${caller}_CC-${opener}`;
     const m = findWithSizes(base);
     if (m.length > 0) return makeCharts(m, base);
+    // Synthetic node — no imageBase, so show expected filename instead of undefined.png
+    return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
   }
 
   // SQUEEZE: path.length === 3, middle step is _CC → Squeezer_Squeeze-Caller-Opener(-size)
@@ -2107,56 +2125,65 @@ function getChartsForNode(node) {
     if (m.length > 0) return makeCharts(m, base);
   }
 
-  // C4B: path.length === 3, no _CC, c4b ≠ opener → C4B_C4B-3Bpos-Opener(-size)
-  // Also collect any matching Squeeze images for the same 3 positions and combine as tabs.
+  // C4B: path.length === 3, no _CC, c4b ≠ opener → C4Better_C4B-3Bpos-Opener(-size)
+  // No CC in path means the 3-better raised (not called), so the 3rd action is always
+  // a cold 4-bet — never a squeeze. Squeeze is only possible via the CC path (path[1]
+  // ends in _CC), which is handled by the SQUEEZE branch above.
   if (path.length === 3 && !pathIsCC(path[1]) && positions[2] !== positions[0]) {
     const [opener, threebetter, c4b] = positions;
+    const base = `${c4b}_C4B-${threebetter}-${opener}`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+    // File not found — show expected filename instead of falling through to a wrong chart
+    return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
+  }
 
-    const c4bBase = `${c4b}_C4B-${threebetter}-${opener}`;
-    const sqBase  = `${c4b}_Squeeze-${threebetter}-${opener}`;
-    const c4bM = findWithSizes(c4bBase);
-    const sqM  = findWithSizes(sqBase);
-
-    if (c4bM.length > 0 || sqM.length > 0) {
-      // Build labelled chart arrays for each situation
-      const labelledCharts = (matches, base, sitLabel, sit) => {
-        if (matches.length === 0) return [];
-        return makeCharts(matches, base).map((c, i, arr) => {
-          // If both situations present, prefix labels so tabs read "C4B", "C4B 7bb", "Squeeze", "Sq 13bb"
-          const hasOther = sit === "c4b" ? sqM.length > 0 : c4bM.length > 0;
-          let label = c.label;
-          if (hasOther) {
-            const short = sit === "c4b" ? "C4B" : "Sq";
-            label = label == null ? sitLabel : `${short} ${label}`;
-          }
-          return { ...c, label, situation: sit };
-        });
-      };
-
-      const c4bCharts = labelledCharts(c4bM, c4bBase, "C4B", "c4b");
-      const sqCharts  = labelledCharts(sqM,  sqBase,  "Squeeze", "squeeze");
-
-      // Put preferred situation first based on localStorage default
-      const pref = getDefaultSit(path);
-      if (pref === "squeeze" && sqCharts.length > 0) {
-        return [...sqCharts, ...c4bCharts];
-      }
-      return [...c4bCharts, ...sqCharts];
-    }
+  // vs 4B: 4-step path that alternates positions [A,B,A,B] — 3-better responds to opener 4B.
+  // Naming: Actor-FourBetter_4B (e.g. BB-SB_4B for BB facing SB's 4B)
+  if (path.length === 4 && path.every(s => !pathIsCC(s)) &&
+      positions[2] === positions[0] && positions[3] === positions[1]) {
+    const base = `${positions[3]}-${positions[2]}_4B`;
+    const m = findWithSizes(base);
+    if (m.length > 0) return makeCharts(m, base);
+    return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
   }
 
   // vs C4B: virtual 4-step path created when opener or 3-better re-taps from a C4B node.
   // Naming: Actor-OtherParticipant-C4Better_C4B(-size)
   //   opener  re-taps → Opener-3Better-C4Better_C4B  (e.g. BTN-SB-BB_C4B)
   //   3-better re-taps → 3Better-Opener-C4Better_C4B (e.g. SB-BTN-BB_C4B)
+  // Also tries _Squeeze suffix as fallback (some solvers label these spots "Squeeze").
   if (path.length === 4 && path.every(s => !pathIsCC(s))) {
     const [opener, threebetter, c4better, responder] = positions;
     let base;
-    if (responder === opener)      base = `${opener}-${threebetter}-${c4better}_C4B`;
+    if (responder === opener)           base = `${opener}-${threebetter}-${c4better}_C4B`;
     else if (responder === threebetter) base = `${threebetter}-${opener}-${c4better}_C4B`;
     if (base) {
       const m = findWithSizes(base);
       if (m.length > 0) return makeCharts(m, base);
+      // Fallback: try _Squeeze suffix (user may have named the file this way)
+      const sqBase = base.replace(/_C4B$/, "_Squeeze");
+      const mSq = findWithSizes(sqBase);
+      if (mSq.length > 0) return makeCharts(mSq, sqBase);
+      // Neither found — show expected filename instead of undefined.png
+      return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
+    }
+  }
+
+  // vs Squeeze: 4-step path with CC at index 1 — opener or caller responds vs squeeze.
+  // Naming: Actor-OtherParticipant-Squeezer_Squeeze(-size)
+  //   opener re-taps → Opener-Caller-Squeezer_Squeeze  (e.g. MP-BTN-SB_Squeeze)
+  //   caller re-taps → Caller-Opener-Squeezer_Squeeze  (e.g. BTN-MP-SB_Squeeze)
+  if (path.length === 4 && pathIsCC(path[1])) {
+    const [opener, caller, squeezer, responder] = positions;
+    let base;
+    if (responder === opener)  base = `${opener}-${caller}-${squeezer}_Squeeze`;
+    else if (responder === caller) base = `${caller}-${opener}-${squeezer}_Squeeze`;
+    if (base) {
+      const m = findWithSizes(base);
+      if (m.length > 0) return makeCharts(m, base);
+      // File not found — show expected filename instead of undefined.png
+      return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
     }
   }
 
@@ -2241,12 +2268,30 @@ function handlePositionTap(pos, action) {
       return;
     }
 
-    // vs-action double-tap: pos is already in path (opener/3-better re-entering)
-    // e.g. UTG double-tap from ["UTG","CO"] → vs 3B; BTN from ["BTN","SB","BB"] → vs C4B
-    if (state.currentPath.length >= 2 && noCC &&
-        state.currentPath.some(s => pathPos(s) === pos)) {
-      openChartForPath([...state.currentPath, pos]);
-      return;
+    // vs-action double-tap: pos is already in path (opener/caller re-entering)
+    // e.g. UTG double-tap from ["UTG","CO"] → vs 3B / 4B
+    //      BTN from ["BTN","SB","BB"] → vs C4B
+    //      MP from ["MP","BTN_CC","SB"] → vs Squeeze
+    {
+      const len2     = state.currentPath.length;
+      const lastPos2 = pathPos(state.currentPath[len2 - 1] || "");
+      // Valid re-entry: not the most-recent step, and must be opener (idx 0) or
+      // the 3-better/caller (idx 1) — prevents nonsense like 3-better re-entering a 2-step path
+      const eligible2 = pos !== lastPos2 &&
+        state.currentPath.some(s => pathPos(s) === pos) &&
+        (pos === pathPos(state.currentPath[0]) ||
+         (len2 >= 2 && pos === pathPos(state.currentPath[1])));
+      if (eligible2) {
+        if (noCC && len2 === 2) {
+          // Push opener's 4B into state so BB can subsequently respond
+          state.currentPath.push(pos);
+          render();
+          openChartForPath(state.currentPath);
+        } else if (len2 === 3) {
+          openChartForPath([...state.currentPath, pos]);
+        }
+        return;
+      }
     }
 
     // Standalone double-tap: this position is the only one in the path
@@ -2261,13 +2306,31 @@ function handlePositionTap(pos, action) {
   }
 
   // Guard: a position already in the path cannot be added again.
-  // Exception: opener/3-better re-entering a non-CC path opens a vs-action chart
-  // (vs 3B from 2-step, vs C4B from 3-step) without changing the main path.
+  // Exception: opener (idx 0) or 3-better/caller (idx 1) can re-enter to open a
+  // vs-action chart — but only if they are NOT the most-recent step:
+  //   len=2, no CC, opener re-taps → push opener's 4B into state, open vs-3B chart
+  //     (pushing enables BB to subsequently tap for BB vs 4B)
+  //   len=3, no CC → vs C4B (opener/3-better re-taps, virtual path)
+  //   len=3, has CC → vs Squeeze (opener/caller re-taps, virtual path)
   if (state.currentPath.some(s => pathPos(s) === pos)) {
-    const noCC = state.currentPath.every(s => !pathIsCC(s));
-    const len  = state.currentPath.length;
-    if (noCC && (len === 2 || len === 3)) {
-      openChartForPath([...state.currentPath, pos]);
+    const noCC    = state.currentPath.every(s => !pathIsCC(s));
+    const len     = state.currentPath.length;
+    const lastPos = pathPos(state.currentPath[len - 1]);
+    // Only opener (idx 0) or 3-better/caller (idx 1) qualify, and pos must not
+    // be the most-recent step (prevents pointless re-push of the current actor)
+    const eligible = pos !== lastPos &&
+      (pos === pathPos(state.currentPath[0]) ||
+       (len >= 2 && pos === pathPos(state.currentPath[1])));
+    if (eligible) {
+      if (noCC && len === 2) {
+        // Push opener's 4B into path — no chart on single tap, consistent with
+        // normal position-tap behaviour. Double-tap opens chart; single tap just
+        // extends the path so the 3-better (e.g. BB) can respond next.
+        state.currentPath.push(pos);
+        render();
+      } else if (len === 3) {
+        openChartForPath([...state.currentPath, pos]);
+      }
     }
     return;
   }
@@ -2308,7 +2371,9 @@ function closeModal() {
   state.activeNode = null;
   document.getElementById("chart-modal").classList.add("hidden");
   resetZoom();
-  resetPath();
+  // Path is intentionally kept so the user can continue navigating after closing a chart
+  // (e.g. SB→BB→SB opens SB 4B chart; closing it leaves ["SB","BB","SB"] so BB can be tapped next)
+  render();
 }
 
 // ═══════════════════════════════════════════════════════════════
