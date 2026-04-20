@@ -691,7 +691,11 @@
     font-size: 15px;
     font-weight: 600;
     white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s;
   }
+  .breadcrumb .segment:hover { background: rgba(255,255,255,0.22); }
+  .breadcrumb .segment:active { background: rgba(255,255,255,0.32); }
 
   .breadcrumb .arrow { color: rgba(255,255,255,0.4); font-size: 14px; font-weight: 700; flex-shrink: 0; }
 
@@ -1961,6 +1965,16 @@ function openChartForPath(path) {
     node = { path, imageFolder: caller, title: `${caller} CC vs ${opener}` };
   }
 
+  // Synthetic node: vs Sq5B — squeezer responds to RFI's 4B in a squeeze pot
+  // path = [RFI, caller_CC, squeezer, RFI, squeezer]  →  pattern [A, B_CC, C, A, C]
+  // File naming: Squeezer-Caller-RFI_4B  (e.g. SB-BTN-UTG_4B.png)
+  if (!node && path.length === 5 && pathIsCC(path[1])) {
+    const p = path.map(pathPos);
+    if (p[3] === p[0] && p[4] === p[2]) {
+      node = { path, imageFolder: p[4], title: `${p[4]} vs ${p[0]} 4B (squeeze pot)` };
+    }
+  }
+
   // Synthetic node: vs Squeeze — 4-step path, CC at index 1 (opener or caller responds)
   // path = [opener, caller_CC, squeezer, responder]
   if (!node && path.length === 4 && pathIsCC(path[1])) {
@@ -2170,6 +2184,19 @@ function getChartsForNode(node) {
     }
   }
 
+  // vs Sq5B: squeezer responds to RFI's 4B — 5-step squeeze pot
+  // Path pattern: [RFI, caller_CC, squeezer, RFI, squeezer]  →  [A, B_CC, C, A, C]
+  // Naming: Squeezer-Caller-RFI_4B(-size)  e.g. SB-BTN-UTG_4B.png
+  if (path.length === 5 && pathIsCC(path[1])) {
+    const p = positions;  // [opener/RFI, caller, squeezer, RFI, squeezer]
+    if (p[3] === p[0] && p[4] === p[2]) {
+      const base = `${p[2]}-${p[1]}-${p[0]}_4B`;
+      const m = findWithSizes(base);
+      if (m.length > 0) return makeCharts(m, base);
+      return [{ label: null, src: `images/${dirPrefix}${base}.png`, missing: true }];
+    }
+  }
+
   // vs Squeeze: 4-step path with CC at index 1 — opener or caller responds vs squeeze.
   // Naming: Actor-OtherParticipant-Squeezer_Squeeze(-size)
   //   opener re-taps → Opener-Caller-Squeezer_Squeeze  (e.g. MP-BTN-SB_Squeeze)
@@ -2280,7 +2307,9 @@ function handlePositionTap(pos, action) {
       const eligible2 = pos !== lastPos2 &&
         state.currentPath.some(s => pathPos(s) === pos) &&
         (pos === pathPos(state.currentPath[0]) ||
-         (len2 >= 2 && pos === pathPos(state.currentPath[1])));
+         (len2 >= 2 && pos === pathPos(state.currentPath[1])) ||
+         // Squeezer (idx 2) can re-enter a 4-step squeeze path to show their 5B response
+         (len2 === 4 && !noCC && len2 >= 3 && pos === pathPos(state.currentPath[2])));
       if (eligible2) {
         if (noCC && len2 === 2) {
           // Push opener's 4B into state so BB can subsequently respond
@@ -2288,6 +2317,18 @@ function handlePositionTap(pos, action) {
           render();
           openChartForPath(state.currentPath);
         } else if (len2 === 3) {
+          if (!noCC) {
+            // Squeeze line: push opener's 4B into state, don't open chart yet
+            // (double-tap will open via split-button check; squeezer can then tap)
+            state.currentPath.push(pos);
+            render();
+            openChartForPath(state.currentPath);
+          } else {
+            // C4B line: virtual chart only
+            openChartForPath([...state.currentPath, pos]);
+          }
+        } else if (len2 === 4 && !noCC) {
+          // Squeeze continuation: squeezer responds to opener's 4B (virtual 5-step)
           openChartForPath([...state.currentPath, pos]);
         }
         return;
@@ -2320,15 +2361,26 @@ function handlePositionTap(pos, action) {
     // be the most-recent step (prevents pointless re-push of the current actor)
     const eligible = pos !== lastPos &&
       (pos === pathPos(state.currentPath[0]) ||
-       (len >= 2 && pos === pathPos(state.currentPath[1])));
+       (len >= 2 && pos === pathPos(state.currentPath[1])) ||
+       // Squeezer (idx 2) re-enters a 4-step squeeze path to show their 5B response
+       (len === 4 && !noCC && pos === pathPos(state.currentPath[2])));
     if (eligible) {
       if (noCC && len === 2) {
-        // Push opener's 4B into path — no chart on single tap, consistent with
-        // normal position-tap behaviour. Double-tap opens chart; single tap just
-        // extends the path so the 3-better (e.g. BB) can respond next.
+        // Push opener's 4B into path — single tap just extends path, double-tap opens chart
         state.currentPath.push(pos);
         render();
       } else if (len === 3) {
+        if (!noCC) {
+          // Squeeze line: push opener's 4B so squeezer can tap next
+          // Single tap extends path silently; double-tap opens chart via split-button check
+          state.currentPath.push(pos);
+          render();
+        } else {
+          // C4B line: virtual chart (path not extended)
+          openChartForPath([...state.currentPath, pos]);
+        }
+      } else if (len === 4 && !noCC) {
+        // Squeeze continuation: squeezer responds to opener's 4B (virtual 5-step path)
         openChartForPath([...state.currentPath, pos]);
       }
     }
@@ -3014,7 +3066,16 @@ function renderBreadcrumb() {
     }
 
     const span = document.createElement("span");
-    span.className = "segment"; span.textContent = text;
+    span.className = "segment";
+    span.textContent = text;
+    span.title = "Go back to this step";
+    // Clicking a segment truncates the path to that point
+    const stepDepth = i; // capture loop var (i = 1-indexed depth)
+    span.addEventListener("click", () => {
+      state.currentPath = state.currentPath.slice(0, stepDepth);
+      closeModal();
+      render();
+    });
     el.appendChild(span);
   }
 }
@@ -3118,6 +3179,10 @@ function renderModal() {
   const charts   = getChartsForNode(state.activeNode);
   const nextNode = showSequence ? getNextNode() : null;
   const inSeq    = !!nextNode;
+
+  // Auto-enable side-by-side view for HU/MW caller-vs-squeeze charts
+  const hasHUMW = charts.some(c => c.label === "HU") && charts.some(c => c.label === "MW");
+  if (hasHUMW && !inSeq) showVariantCompare = true;
 
   // Active chart + variant label (used for title and filename)
   const chart        = charts[state.activeVariantIndex] || charts[0];
