@@ -926,7 +926,11 @@
     white-space: nowrap;
   }
 
-  .variant-tabs button.active { background: rgba(255,255,255,0.22); color: #fff; }
+  .variant-tabs button.active {
+    background: rgba(80, 160, 255, 0.28);
+    color: #7ec8ff;
+    border-bottom: 2px solid #7ec8ff;
+  }
 
   /* ── Zoom area ────────────────────────────────────────────── */
   #zoom-area {
@@ -1143,9 +1147,14 @@
   .hidden { display: none !important; }
 
   /* ── Wide action buttons — expanded CC/3B (three full circles) ───── */
-  /* The center circle is a dimmed reference label; CC and 3B are full buttons */
+  /* The center circle shows the position label — dimmed but clearly readable */
   .split-wide-center {
-    opacity: 0.38;
+    opacity: 0.62;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    border-style: dashed !important;
+    border-color: rgba(255,255,255,0.25) !important;
+    pointer-events: none;   /* position label is just a reference; tap CALL or 3B */
   }
   /* Shared tweaks for the two action circles — label only, no sub-text */
   .split-wide-action {
@@ -1437,6 +1446,12 @@
     .position-btn { width: 78px; height: 78px; font-size: 18px; border-width: 2px; }
     .split-wide-action { width: 64px !important; height: 64px !important; font-size: 12px !important; }
     .split-pos-wrap { width: 64px; height: 64px; }
+
+    /* Bigger toggles on tablet/iPad */
+    .setting-toggle { font-size: 15px; gap: 9px; }
+    .setting-toggle input[type="checkbox"] { width: 38px; height: 22px; }
+    .setting-toggle input[type="checkbox"]::after { width: 18px; height: 18px; top: 2px; left: 2px; }
+    .setting-toggle input[type="checkbox"]:checked::after { left: 18px; }
     .title-group h1 { font-size: 20px; }
     #app { padding: 12px 16px 16px; }
   }
@@ -1454,10 +1469,11 @@
     .title-group { gap: 3px; }
     .title-group h1 { font-size: 16px; }
 
-    .setting-toggle { font-size: 10px; gap: 5px; }
-    .setting-toggle input[type="checkbox"] { width: 24px; height: 14px; }
-    .setting-toggle input[type="checkbox"]::after { width: 10px; height: 10px; }
-    .setting-toggle input[type="checkbox"]:checked::after { left: 12px; }
+    /* Bigger toggles on phone too — easier to tap */
+    .setting-toggle { font-size: 13px; gap: 8px; }
+    .setting-toggle input[type="checkbox"] { width: 34px; height: 20px; }
+    .setting-toggle input[type="checkbox"]::after { width: 16px; height: 16px; top: 2px; left: 2px; }
+    .setting-toggle input[type="checkbox"]:checked::after { left: 16px; }
 
     .toolbar { gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 
@@ -1789,6 +1805,58 @@ function setDefaultSit(nodePath, sit) {
   try { localStorage.setItem(_sitKey(nodePath), sit); } catch {}
 }
 
+// ── Per-action "default size" preference ──────────────────────────
+// Key format: "POS_ACTION", e.g. "SB_3B", "BTN_Squeeze", "CO_vs3B".
+// Value: the label string to show first, e.g. "11bb", "13bb".
+function _sizePrefsKey() { return "rn_size_defaults"; }
+function getSizePrefs() {
+  try { return JSON.parse(localStorage.getItem(_sizePrefsKey()) || "{}"); } catch { return {}; }
+}
+function saveSizePrefs(obj) {
+  try { localStorage.setItem(_sizePrefsKey(), JSON.stringify(obj)); } catch {}
+}
+function getDefaultSizeLabel(sizeKey) {
+  if (!sizeKey) return null;
+  return getSizePrefs()[sizeKey] || null;
+}
+function setDefaultSizeLabel(sizeKey, label) {
+  if (!sizeKey) return;
+  const prefs = getSizePrefs();
+  if (label === null) { delete prefs[sizeKey]; }
+  else { prefs[sizeKey] = label; }
+  saveSizePrefs(prefs);
+}
+// Derive a sizeKey from a path (e.g. ["SB","BB"] → "BB_3B", ["UTG","BTN_CC","SB"] → "SB_Squeeze")
+function getSizeKey(path) {
+  if (!path || path.length === 0) return null;
+  const p = path.map(pathPos);
+  const hasCC1 = path.length > 1 && pathIsCC(path[1]);
+  if (path.length === 1) return `${p[0]}_RFI`;
+  if (path.length === 2 && !hasCC1) return `${p[1]}_3B`;
+  if (path.length === 2 &&  hasCC1) return `${p[1]}_CC`;
+  if (path.length === 3 &&  hasCC1) return `${p[2]}_Squeeze`;
+  if (path.length === 3 && !hasCC1 && p[2] === p[0]) return `${p[0]}_vs3B`;
+  if (path.length === 3 && !hasCC1 && p[2] !== p[0]) return `${p[2]}_C4B`;
+  if (path.length === 4 && !hasCC1 && p[2] === p[0] && p[3] === p[1]) return `${p[3]}_vs4B`;
+  if (path.length === 4 && !hasCC1) return `${p[3]}_vsC4B`;
+  if (path.length === 4 &&  hasCC1) return `${p[3]}_vsSqueeze`;
+  if (path.length === 5 &&  hasCC1 && p[3] === p[0] && p[4] === p[2]) return `${p[2]}_vs5B`;
+  return null;
+}
+
+// Returns the variant index to select when opening a node's chart modal.
+// Looks up any saved default-size preference and finds its position in the
+// sorted (smallest→largest) charts array, keeping the visual order intact.
+function getPreferredVariantIndex(node) {
+  if (!node) return 0;
+  const sizeKey = getSizeKey(node.path || []);
+  const preferred = getDefaultSizeLabel(sizeKey);
+  if (!preferred) return 0;
+  const charts = getChartsForNode(node);
+  const idx = charts.findIndex(c => c.label === preferred);
+  return idx >= 0 ? idx : 0;
+}
+
 // ── Which positions show CC/3B split button ───────────────────────
 // BTN: after UTG/MP/CO open.  SB: after UTG/MP/CO/BTN open.
 function canColdCall(pos, opener) {
@@ -2001,7 +2069,7 @@ function openChartForPath(path) {
 
   if (!node) return false;
   state.activeNode = node;
-  state.activeVariantIndex = 0;
+  state.activeVariantIndex = getPreferredVariantIndex(node);
   openModal();
   return true;
 }
@@ -2061,7 +2129,8 @@ function getChartsForNode(node) {
     });
   }
 
-  // Turn a match list into [{label, src}], sorted numerically by size suffix
+  // Turn a match list into [{label, src}], sorted numerically by size suffix (smallest → largest).
+  // The preferred variant is selected via state.activeVariantIndex at open-time, not by reordering.
   function makeCharts(matches, baseNoExt) {
     if (matches.length === 0) return [];
     if (matches.length === 1) {
@@ -2395,7 +2464,7 @@ function handlePositionTap(pos, action) {
 function viewChart() {
   const node = findNode(state.currentPath);
   if (!node) return;
-  state.activeNode = node; state.activeVariantIndex = 0;
+  state.activeNode = node; state.activeVariantIndex = getPreferredVariantIndex(node);
   openModal();
 }
 
@@ -2814,7 +2883,8 @@ function renderTable() {
   const currentNode = findNode(state.currentPath);
   const isHU        = state.format === "headsUp";
 
-  const RX = 54, RY = 60;
+  const RX = 42, RY = 60;  // RX=42 keeps edge positions (~13%) far enough from the border
+                            // that wide-split CALL buttons (pos−11%) stay on-screen
 
   positions.forEach((pos, i) => {
     const angle = (2 * Math.PI * i) / positions.length - Math.PI / 2;
@@ -2838,17 +2908,13 @@ function renderTable() {
     if (useSplit) {
       if (wideActionButtons) {
         // ── Wide mode: three full circles, always horizontal ─────
-        // CC to the left, position label in centre, 3B to the right.
-        // SB lives at x≈3% so we clamp the whole cluster rightward
-        // enough that the CC button stays on-screen (≥2% x).
-        const OFFSET = 11;        // % of table width between centre and each flanking button
-        const MIN_MARGIN = 2;     // minimum x% for any button centre
-        const clampedBX = Math.max(bx, MIN_MARGIN + OFFSET);  // shift cluster right if needed
+        // Symmetric:  [CALL at bx−11%]  [POS at bx]  [3B at bx+11%]
+        // RX=42 ensures SB/BB land at ~13% so CALL (at ~2%) stays on-screen.
+        const OFFSET = 11;
+        const ccX = bx - OFFSET;
+        const tbX = bx + OFFSET;
 
-        const ccX = clampedBX - OFFSET,  ccY = by;
-        const tbX = clampedBX + OFFSET,  tbY = by;
-
-        // Helper: build a flanking circle button (label text only, no position name)
+        // Helper: build a flanking circle button
         const makeSplitCircle = (cls, actionLbl, xPct, yPct, action) => {
           const btn = document.createElement("button");
           btn.className = `position-btn split-wide-action ${cls}`;
@@ -2860,18 +2926,17 @@ function renderTable() {
           table.appendChild(btn);
         };
 
-        // Centre: dimmed position label (tapping = 3B fallback)
+        // Centre: position name label (dashed ring, non-interactive reference)
         const center = document.createElement("button");
         center.className = `position-btn split-wide-center`;
         center.dataset.pos = pos;
-        center.style.setProperty("--x", clampedBX + "%");
+        center.style.setProperty("--x", bx + "%");
         center.style.setProperty("--y", by + "%");
         center.textContent = DISPLAY_NAMES[pos] || pos;
-        center.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "3B"); });
         table.appendChild(center);
 
-        makeSplitCircle("split-wide-cc", "CALL", ccX, ccY, "CC");
-        makeSplitCircle("split-wide-3b", "3B",   tbX, tbY, "3B");
+        makeSplitCircle("split-wide-cc", "CALL", ccX, by, "CC");
+        makeSplitCircle("split-wide-3b", "3B",   tbX, by, "3B");
 
       } else {
         // ── Compact mode: single circle split into two halves ─────
@@ -3209,6 +3274,35 @@ function renderModal() {
       });
       tabs.appendChild(b);
     });
+
+    // ── "★ Default size" button — when multiple size-variant tabs are showing
+    // Identifies size tabs as those whose labels look like a size ("10bb", "11bb", "22bb", etc.)
+    const isSizeLabel = lbl => lbl && /^\d/.test(lbl);
+    const sizeCharts  = charts.filter(c => isSizeLabel(c.label));
+    if (sizeCharts.length > 1 && state.activeNode) {
+      const activePath   = state.activeNode.path;
+      const activeSzKey  = getSizeKey(activePath);
+      const curChart     = charts[state.activeVariantIndex] || charts[0];
+      const curLabel     = curChart?.label;
+      const savedDefault = getDefaultSizeLabel(activeSzKey);
+      const isCurDefault = curLabel && curLabel === savedDefault;
+      const isSizeTab    = isSizeLabel(curLabel);
+
+      if (isSizeTab) {
+        const szBtn = document.createElement("button");
+        szBtn.className   = "sit-default-btn" + (isCurDefault ? " is-default" : "");
+        szBtn.textContent = isCurDefault ? `★ ${curLabel}` : `☆ ${curLabel}`;
+        szBtn.title       = isCurDefault
+          ? `${curLabel} is your default size for this spot — click to clear`
+          : `Set ${curLabel} as default size for this spot`;
+        szBtn.addEventListener("click", e => {
+          e.stopPropagation();
+          setDefaultSizeLabel(activeSzKey, isCurDefault ? null : curLabel);
+          renderModal();
+        });
+        tabs.appendChild(szBtn);
+      }
+    }
 
     // ── "Set as default" button — only when C4B + Squeeze tabs both present
     const hasBothSituations =
