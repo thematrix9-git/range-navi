@@ -2363,6 +2363,16 @@ function handlePositionTap(pos, action) {
     const lastStep = state.currentPath[state.currentPath.length - 1];
     const noCC     = state.currentPath.every(s => !pathIsCC(s));
 
+    // Standalone double-tap: pos is the only thing in the path.
+    // Check for a default overview FIRST — before the split-button guard below,
+    // which would otherwise fire and call openChartForPath (returns false for bare
+    // single-position paths that have no data.js node, causing "does nothing").
+    if (state.currentPath.length === 1 && pathPos(state.currentPath[0]) === pos) {
+      const pack  = getCurrentPack();
+      const defOv = pack ? getDefaultOverview(pack.id, pos) : null;
+      if (defOv) { openOverviewChart(defOv); return; }
+    }
+
     // Split-button double-tap: first tap already pushed the step (last step = this pos)
     if (lastStep && pathPos(lastStep) === pos) {
       openChartForPath(state.currentPath);
