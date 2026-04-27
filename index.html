@@ -2120,12 +2120,15 @@ function getChartsForNode(node) {
 
   // ── Helpers ──────────────────────────────────────────────────
 
-  // Find all manifest files that are exactly baseNoExt or baseNoExt-size
+  // Find all manifest files that are exactly baseNoExt or baseNoExt-size.
+  // Comparisons are case-insensitive so iOS (case-sensitive FS) matches correctly.
+  const dirPrefixLC = dirPrefix.toLowerCase();
   function findWithSizes(baseNoExt) {
+    const baseLC = baseNoExt.toLowerCase();
     return manifest.filter(f => {
-      if (!f.startsWith(dirPrefix)) return false;
-      const name = f.slice(dirPrefix.length).replace(/\.[^.]+$/, "");
-      return name === baseNoExt || name.startsWith(baseNoExt + "-");
+      if (!f.toLowerCase().startsWith(dirPrefixLC)) return false;
+      const name = f.slice(dirPrefix.length).replace(/\.[^.]+$/, "").toLowerCase();
+      return name === baseLC || name.startsWith(baseLC + "-");
     });
   }
 
@@ -2289,31 +2292,34 @@ function getChartsForNode(node) {
 
 function getOldStyleCharts(node, pack, manifest) {
   if (!pack) return [];
-  const prefix = node.imageFolder
+  const prefix   = node.imageFolder
     ? `${pack.imageFolder}/${node.imageFolder}/${node.imageBase}`
     : `${pack.imageFolder}/${node.imageBase}`;
+  // Case-insensitive prefix for matching — iOS file system is case-sensitive
+  // but data.js imageBase and actual filenames sometimes differ in case.
+  const prefixLC = prefix.toLowerCase();
 
   if (manifest.length > 0) {
-    // Build a set of every other node's exact path to avoid cross-contamination
-    const otherBases = new Set(
+    // Build a set of every other node's normalised path (lowercase) to avoid cross-contamination
+    const otherBasesLC = new Set(
       (pack.nodes || [])
         .filter(n => n !== node)
-        .map(n => n.imageFolder
+        .map(n => (n.imageFolder
           ? `${pack.imageFolder}/${n.imageFolder}/${n.imageBase}`
-          : `${pack.imageFolder}/${n.imageBase}`)
+          : `${pack.imageFolder}/${n.imageBase}`).toLowerCase())
     );
     const matches = manifest.filter(f => {
-      const noExt = f.replace(/\.[^.]+$/, "");
-      if (noExt === prefix) return true;
+      const noExtLC = f.replace(/\.[^.]+$/, "").toLowerCase();
+      if (noExtLC === prefixLC) return true;
       // Old-style underscore variant: prefix_label
-      if (noExt.startsWith(prefix + "_")) return !otherBases.has(noExt);
+      if (noExtLC.startsWith(prefixLC + "_")) return !otherBasesLC.has(noExtLC);
       // New-style dash-size variant: prefix-size (e.g. UTG-BB_3B-7bb)
-      if (noExt.startsWith(prefix + "-")) return !otherBases.has(noExt);
+      if (noExtLC.startsWith(prefixLC + "-")) return !otherBasesLC.has(noExtLC);
       return false;
     });
     if (matches.length === 1) {
-      const noExt  = matches[0].replace(/\.[^.]+$/, "");
-      const label  = noExt === prefix ? null : noExt.slice(prefix.length + 1);
+      const noExtLC = matches[0].replace(/\.[^.]+$/, "").toLowerCase();
+      const label   = noExtLC === prefixLC ? null : matches[0].replace(/\.[^.]+$/, "").slice(prefix.length + 1) || null;
       return [{ label, src: "images/" + matches[0] }];
     }
     if (matches.length > 1) {
@@ -2321,9 +2327,8 @@ function getOldStyleCharts(node, pack, manifest) {
       matches.sort((a, b) => {
         const noExtA = a.replace(/\.[^.]+$/, "");
         const noExtB = b.replace(/\.[^.]+$/, "");
-        if (noExtA === prefix) return -1;
-        if (noExtB === prefix) return  1;
-        // Label = everything after the first _ or - separator after prefix
+        if (noExtA.toLowerCase() === prefixLC) return -1;
+        if (noExtB.toLowerCase() === prefixLC) return  1;
         const lblA = noExtA.slice(prefix.length + 1);
         const lblB = noExtB.slice(prefix.length + 1);
         const ia = varOrder.indexOf(lblA), ib = varOrder.indexOf(lblB);
@@ -2335,8 +2340,8 @@ function getOldStyleCharts(node, pack, manifest) {
         return lblA.localeCompare(lblB);
       });
       return matches.map(f => {
-        const noExt = f.replace(/\.[^.]+$/, "");
-        const label = noExt === prefix ? "Base" : noExt.slice(prefix.length + 1);
+        const noExtLC = f.replace(/\.[^.]+$/, "").toLowerCase();
+        const label   = noExtLC === prefixLC ? "Base" : f.replace(/\.[^.]+$/, "").slice(prefix.length + 1);
         return { label, src: "images/" + f };
       });
     }
