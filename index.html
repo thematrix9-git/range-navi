@@ -3771,6 +3771,11 @@ function init() {
     if (e.target === e.currentTarget) closeOverviewManager();
   });
 
+  // Prevent taps inside the menu from bubbling to the document touchstart
+  // listener below — on iOS, if the menu hides while your finger is still down,
+  // the click event on the tapped button is cancelled before it fires.
+  document.getElementById("overview-menu").addEventListener("touchstart", e => e.stopPropagation(), { passive: true });
+
   // Close overview menu on any outside click
   document.addEventListener("click",      () => closeOverviewMenu());
   document.addEventListener("touchstart", () => closeOverviewMenu(), { passive: true });
