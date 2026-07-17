@@ -1,4 +1,14 @@
 /* =====================================================================
+   METADATA-FIRST EXPORTS (schema version 2)
+   -----------------------------------------
+   Libraries created by HRC Screenshot Exporter 2.x use simple node filenames
+   such as BTN/node-000011.png. Their poker meaning is stored in pack.json and
+   the generated library-metadata.js index. The Navigator always prefers that
+   typed metadata, including exact action history and actual action sizes.
+
+   The filename convention documented below is retained for legacy and
+   manually assembled libraries only. Do not rename schema-v2 exporter output.
+
    Range Navigator — data.js
    =====================================================================
 

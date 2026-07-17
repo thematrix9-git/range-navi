@@ -1014,9 +1014,9 @@
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 16px 16px 24px;
+    padding: 70px 16px 24px;
     cursor: default;
     will-change: transform;
     transform-origin: 0 0;
@@ -1682,8 +1682,9 @@
 
       <!-- Naming Convention Section -->
       <div class="help-section">
-        <h3>📋 Image Naming Convention</h3>
-        <p>When adding custom chart images, follow this naming system. Charts are organized by <strong>situation</strong> — who's acting and what action they're taking.</p>
+        <h3>📋 Legacy Image Naming Convention</h3>
+        <p><strong>Libraries made by HRC Screenshot Exporter 2.x do not need poker information in their filenames.</strong> The exporter creates simple <code>node-000123.png</code> files plus exact action-tree metadata, which the app uses automatically.</p>
+        <p>The naming table below remains available for older libraries and charts assembled manually. In those filename-only libraries, charts are organized by <strong>situation</strong> — who's acting and what action they're taking.</p>
 
         <table class="help-naming-table">
           <thead>
@@ -1786,9 +1787,17 @@
       <!-- Adding Custom Charts Section -->
       <div class="help-section">
         <h3>➕ Adding Your Own Charts</h3>
-        <p>You can add new chart images to the app using two methods:</p>
+        <p>You can add new chart images to the app using three methods:</p>
 
-        <p><strong>Method A: In-App (easiest)</strong></p>
+        <p><strong>Method A: HRC Screenshot Exporter (recommended for complete trees)</strong></p>
+        <ul>
+          <li>Select the Range Navigator's <code>images</code> folder as the output</li>
+          <li>Leave “Update Navigator indexes” enabled</li>
+          <li>Generate the library, then reload the Range Navigator</li>
+          <li>Do not rename generated node images; <code>pack.json</code> contains the exact actions and sizes</li>
+        </ul>
+
+        <p><strong>Method B: In-App (easiest for overviews)</strong></p>
         <ul>
           <li>Tap the ⋯ button on any position → Manage</li>
           <li>Tap "Add new entry"</li>
@@ -1796,12 +1805,12 @@
           <li>Create or place your PNG file at that path, then reload</li>
         </ul>
 
-        <p><strong>Method B: Edit data.js</strong></p>
+        <p><strong>Method C: Edit data.js (legacy/manual libraries)</strong></p>
         <ul>
           <li>Create a chart image and name it using the convention above</li>
           <li>Place it in the correct folder: <code>images/{pack}/{position}/{filename}.png</code></li>
           <li>Add a node entry to the pack's <code>nodes</code> array in <code>data.js</code> (copy an existing node as a template)</li>
-          <li>Double-click <code>build-manifest.ps1</code> to rebuild the file index</li>
+          <li>Double-click <code>build-manifest.ps1</code> to rebuild the image and metadata indexes</li>
           <li>Reload the app to see your new chart</li>
         </ul>
       </div>
@@ -1824,8 +1833,11 @@
 </div>
 
 <script>window.IMAGE_MANIFEST = window.IMAGE_MANIFEST || [];</script>
+<script>window.RANGE_NAVIGATOR_METADATA = window.RANGE_NAVIGATOR_METADATA || { schemaVersion: 2, packs: {} };</script>
 <script src="manifest.js"  onerror="/* not generated yet */"></script>
+<script src="library-metadata.js" onerror="/* no schema-v2 exported packs yet */"></script>
 <script src="data.js"></script>
+<script src="navigator-metadata.js"></script>
 <script>
 
 // ═══════════════════════════════════════════════════════════════
@@ -1837,6 +1849,9 @@ const state = {
   currentPath:        [],
   activeNode:         null,
   activeVariantIndex: 0,
+  // Metadata node selected for each visible tap path. This lets a later tap
+  // continue down the exact sized branch, even when intervening players fold.
+  metadataSelections: {},
 };
 
 // Default ON — user can toggle off
@@ -1863,6 +1878,38 @@ const DISPLAY_NAMES = {
 // A step is either "BTN" (3-bettor/normal) or "BTN_CC" (cold-caller).
 function pathPos(step)  { return step.replace(/_CC$/, ""); }
 function pathIsCC(step) { return step.endsWith("_CC"); }
+
+function metadataSelectionKey(path) {
+  return `${state.currentPackId || ""}|${(path || []).join("|")}`;
+}
+
+function getMetadataRoot() {
+  const root = window.RANGE_NAVIGATOR_METADATA;
+  return root && root.schemaVersion === 2 && root.packs ? root : null;
+}
+
+function getPackMetadata(pack) {
+  if (!pack) return null;
+  return pack.metadata || getMetadataRoot()?.packs?.[pack.imageFolder] || null;
+}
+
+function metadataNodesForPath(path, pack = getCurrentPack()) {
+  const metadata = getPackMetadata(pack);
+  if (!metadata || metadata.schemaVersion !== 2) return [];
+  let records = window.RANGE_NAVIGATOR_CORE.findRecords(metadata, path);
+
+  // Prefer descendants of the most recently selected visible ancestor. The
+  // lineage contains hidden fold nodes too, so this remains correct when the
+  // visible tap path skips players who folded between two betting actions.
+  for (let length = path.length - 1; length >= 1; length--) {
+    const ancestorPath = path.slice(0, length);
+    const selectedId = state.metadataSelections[metadataSelectionKey(ancestorPath)];
+    if (selectedId === undefined) continue;
+    records = window.RANGE_NAVIGATOR_CORE.preferLineage(records, selectedId);
+    break;
+  }
+  return records;
+}
 
 // ── Per-node "default situation" (C4B vs Squeeze) ─────────────────
 // Stored in localStorage so the last-chosen tab persists across sessions.
@@ -1918,10 +1965,15 @@ function getSizeKey(path) {
 // sorted (smallest→largest) charts array, keeping the visual order intact.
 function getPreferredVariantIndex(node) {
   if (!node) return 0;
+  const charts = getChartsForNode(node);
+  const selectedId = state.metadataSelections[metadataSelectionKey(node.path || [])];
+  if (selectedId !== undefined) {
+    const selectedIndex = charts.findIndex(chart => chart.nodeId === selectedId);
+    if (selectedIndex >= 0) return selectedIndex;
+  }
   const sizeKey = getSizeKey(node.path || []);
   const preferred = getDefaultSizeLabel(sizeKey);
   if (!preferred) return 0;
-  const charts = getChartsForNode(node);
   const idx = charts.findIndex(c => c.label === preferred);
   return idx >= 0 ? idx : 0;
 }
@@ -1947,34 +1999,46 @@ const DOT_ABOVE = new Set(["UTG", "MP", "BB"]);
 function getEffectivePacks() {
   const basePacks = (typeof PACKS !== "undefined") ? PACKS : [];
   const manifest  = window.IMAGE_MANIFEST || [];
+  const metadataPacks = getMetadataRoot()?.packs || {};
 
-  if (manifest.length === 0) return basePacks;
+  const hydratedBasePacks = basePacks.map(pack => ({
+    ...pack,
+    metadata: metadataPacks[pack.imageFolder] || null,
+  }));
 
   // All unique top-level folders in the manifest
-  const folders = [...new Set(manifest.map(p => p.split("/")[0]))];
+  const folders = [...new Set([
+    ...manifest.map(p => p.split("/")[0]),
+    ...Object.keys(metadataPacks),
+  ])];
+
+  if (folders.length === 0) return hydratedBasePacks;
 
   // Folders already covered by an explicit pack entry
-  const coveredFolders = new Set(basePacks.map(p => p.imageFolder));
+  const coveredFolders = new Set(hydratedBasePacks.map(p => p.imageFolder));
 
   // Auto-generate a pack for any folder not yet listed
   const autoPacks = folders
     .filter(f => !coveredFolders.has(f))
     .map(folder => {
-      const isHU   = /\bhu\b/i.test(folder);
+      const metadata = metadataPacks[folder] || null;
+      const isHU   = metadata ? metadata.format === "headsUp" : /\bhu\b/i.test(folder);
       const format = isHU ? "headsUp" : "sixMax";
       // Clone nodes from the first matching template pack so navigation works
-      const tmpl   = basePacks.find(p => p.format === format);
+      // only for legacy filename-only packs. Schema-v2 packs are authoritative.
+      const tmpl   = hydratedBasePacks.find(p => p.format === format);
       return {
         id:          folder,
-        displayName: folder,     // folder name IS the display name
+        displayName: metadata?.displayName || folder,
         format,
         imageFolder: folder,
         overviews:   [],         // start empty; user can add via in-app manager
-        nodes:       tmpl ? tmpl.nodes : [],
+        nodes:       metadata ? [] : (tmpl ? tmpl.nodes : []),
+        metadata,
       };
     });
 
-  return [...basePacks, ...autoPacks];
+  return [...hydratedBasePacks, ...autoPacks];
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2082,6 +2146,18 @@ function getCurrentPack() {
 function findNode(path) {
   const pack = getCurrentPack();
   if (!pack) return null;
+  const metadata = getPackMetadata(pack);
+  if (metadata?.schemaVersion === 2) {
+    const records = metadataNodesForPath(path, pack);
+    if (records.length === 0) return null;
+    const first = records[0];
+    return {
+      path: [...path],
+      imageFolder: first.hero,
+      title: first.title || `${first.hero} decision`,
+      metadataRecords: records,
+    };
+  }
   return pack.nodes.find(n =>
     n.path.length === path.length &&
     n.path.every((p, i) => p === path[i])
@@ -2180,6 +2256,14 @@ function getChartsForNode(node) {
   const pack     = getCurrentPack();
   const manifest = window.IMAGE_MANIFEST || [];
   if (!pack) return [];
+
+  // Schema-v2 metadata is the source of truth for newly exported packs. A
+  // chart's label describes the current actor's actual action size; the prior
+  // action it is facing remains a separate typed history record.
+  const metadataRecords = node.metadataRecords || metadataNodesForPath(node.path || [], pack);
+  if (getPackMetadata(pack)?.schemaVersion === 2) {
+    return window.RANGE_NAVIGATOR_CORE.makeCharts(pack.imageFolder, metadataRecords);
+  }
 
   const path = node.path || [];
   const folder = node.imageFolder
@@ -3152,21 +3236,24 @@ function hexToRgb(hex) {
   return `${r},${g},${b}`;
 }
 
-function renderActionPath(path, activeVariantLabel) {
+function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
   const el = document.getElementById("modal-action-path");
   if (!el) return;
   el.innerHTML = "";
   if (!path || path.length === 0) return;
+  const metadataTrail = metadataRecord
+    ? window.RANGE_NAVIGATOR_CORE.actionTrail(metadataRecord, path)
+    : null;
 
   const verbFor = (p, i) => {
     const lbl = getStepActionLabel(p, i);
-    if (lbl === "RFI")  return "Raises";
+    if (lbl === "RFI")  return "RFI";
     if (lbl === "CC")   return "Calls";
-    if (lbl === "3B")   return "3-Bets";
-    if (lbl === "4B")   return "4-Bets";
-    if (lbl === "5B")   return "5-Bets";
+    if (lbl === "3B")   return "3B";
+    if (lbl === "4B")   return "4B";
+    if (lbl === "5B")   return "5B";
     if (lbl === "Sq")   return "Squeezes";
-    if (lbl === "C4B")  return "C4-Bets";
+    if (lbl === "C4B")  return "C4B";
     return lbl;
   };
 
@@ -3174,19 +3261,26 @@ function renderActionPath(path, activeVariantLabel) {
     const pos   = pathPos(step);
     const color = POS_COLORS[pos] || "#ffffff";
     const rgb   = hexToRgb(color);
-    const verb  = verbFor(path, i);
+    let verb  = verbFor(path, i);
 
     // Size for each step — last step from active variant (or its own chart label),
     // intermediate steps from their node's default/first chart label.
+    // Falls back to a synthetic node when findNode returns null (e.g. squeeze paths
+    // not in data.js) so getChartsForNode can still resolve sizes via path structure.
     let size = null;
-    if (i === path.length - 1) {
-      if (activeVariantLabel && activeVariantLabel !== "Base") size = activeVariantLabel;
-    }
-    if (!size) {
-      const node = findNode(path.slice(0, i + 1));
-      if (node) {
-        const sk    = getSizeKey(path.slice(0, i + 1));
-        const saved = getDefaultSizeLabel(sk);
+    if (metadataRecord) {
+      const item = metadataTrail?.[i];
+      if (item?.actionLabel) verb = item.actionLabel;
+      if (item?.sizeLabel) size = item.sizeLabel;
+    } else {
+      if (i === path.length - 1) {
+        if (activeVariantLabel && activeVariantLabel !== "Base") size = activeVariantLabel;
+      }
+      const prefix  = path.slice(0, i + 1);
+      if (!size) {
+        const node    = findNode(prefix) || { path: prefix, imageFolder: pos };
+        const sk      = getSizeKey(prefix);
+        const saved   = getDefaultSizeLabel(sk);
         if (saved) {
           size = saved;
         } else {
@@ -3434,9 +3528,13 @@ function renderModal() {
   const effectiveLabel = (chart?.label && chart.label !== "Base") ? chart.label : null;
 
   // Formatted title and filename — shown in modal header
-  document.getElementById("modal-title").textContent    = formatModalTitle(state.activeNode.title, variantLabel);
+  if (chart?.metadata) {
+    state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = chart.metadata.nodeId;
+  }
+  const activeTitle = chart?.metadata?.title || state.activeNode.title;
+  document.getElementById("modal-title").textContent    = formatModalTitle(activeTitle, variantLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
-  renderActionPath(state.activeNode.path || [], effectiveLabel);
+  renderActionPath(state.activeNode.path || [], effectiveLabel, chart?.metadata || null);
 
   // ── Variant tabs + optional Split button ──
   const tabs = document.getElementById("variant-tabs");
@@ -3449,6 +3547,9 @@ function renderModal() {
       b.addEventListener("click", e => {
         e.stopPropagation();
         state.activeVariantIndex = i;
+        if (c.metadata) {
+          state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = c.metadata.nodeId;
+        }
         showVariantCompare = false;
         resetZoom();
         renderModal();

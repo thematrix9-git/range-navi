@@ -7,6 +7,7 @@
 $scriptDir  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $imagesDir  = Join-Path $scriptDir "images"
 $outputFile = Join-Path $scriptDir "manifest.js"
+$metadataFile = Join-Path $scriptDir "library-metadata.js"
 
 if (-not (Test-Path $imagesDir)) {
     Write-Host "ERROR: 'images' folder not found next to this script." -ForegroundColor Red
@@ -52,8 +53,38 @@ $body
 
 Set-Content -Path $outputFile -Value $output -Encoding UTF8
 
+# Schema-v2 pack.json files contain the authoritative action tree. Embed all
+# of them in one JavaScript file because Safari/file:// cannot fetch JSON or
+# enumerate folders. Legacy packs without schema-v2 metadata keep using the
+# existing manifest + filename resolver.
+$metadataPacks = [ordered]@{}
+$packFiles = Get-ChildItem -Path (Join-Path $imagesDir "*\pack.json") -File -ErrorAction SilentlyContinue
+foreach ($packFile in $packFiles) {
+    try {
+        $pack = Get-Content -LiteralPath $packFile.FullName -Raw | ConvertFrom-Json
+        if ($pack.schemaVersion -eq 2) {
+            $metadataPacks[$packFile.Directory.Name] = $pack
+        }
+    }
+    catch {
+        Write-Host "WARNING: Skipped invalid metadata: $($packFile.FullName)" -ForegroundColor Yellow
+    }
+}
+
+$metadataRoot = [ordered]@{
+    schemaVersion = 2
+    packs = $metadataPacks
+}
+$metadataJson = $metadataRoot | ConvertTo-Json -Depth 100
+$metadataOutput = @"
+/* AUTO-GENERATED from images/<pack>/pack.json. Do not edit by hand. */
+window.RANGE_NAVIGATOR_METADATA = $metadataJson;
+"@
+Set-Content -Path $metadataFile -Value $metadataOutput -Encoding UTF8
+
 Write-Host ""
 Write-Host "Done! manifest.js updated with $($relativePaths.Count) image(s)." -ForegroundColor Green
+Write-Host "Done! library-metadata.js updated with $($metadataPacks.Count) schema-v2 pack(s)." -ForegroundColor Green
 Write-Host ""
 Write-Host "Files found:"
 $relativePaths | ForEach-Object { Write-Host "  $_" }
