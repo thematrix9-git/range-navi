@@ -744,7 +744,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: 20px 60px 12px;  /* side padding keeps text clear of close button */
+    padding: 12px 60px 8px;  /* side padding keeps text clear of close button */
     flex-shrink: 0;
     cursor: default;
     text-align: center;
@@ -762,6 +762,74 @@
     text-overflow: ellipsis;
     max-width: 380px;
   }
+
+  /* ── Action path — bet-size trail in modal header ─────────── */
+  #chart-modal header.modal-head { padding-bottom: 8px; }
+  #chart-modal h2   { margin-bottom: 0; }
+
+  #modal-action-path {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 5px;
+    flex-wrap: wrap;
+  }
+  #modal-action-path:empty { display: none; margin: 0; }
+
+  /* Each "MP Raises 2.5bb" group */
+  .ap-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--ap-color-border);
+    border-radius: 999px;
+    padding: 5px 13px 5px 5px;
+    white-space: nowrap;
+  }
+
+  /* Small coloured badge for the position name */
+  .ap-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ap-color);
+    background: var(--ap-color-bg);
+    border-radius: 999px;
+    padding: 3px 8px;
+    line-height: 1.2;
+  }
+
+  /* Action verb — dim, lightweight */
+  .ap-verb {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.01em;
+  }
+
+  /* Bet size — bold, white, the thing you actually read */
+  .ap-size {
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.92);
+    letter-spacing: -0.01em;
+  }
+
+  /* Thin arrow separator */
+  .ap-arrow {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    flex-shrink: 0;
+    font-weight: 300;
+  }
+
+  /* Tighten the filename line */
+  #modal-filename { margin-top: 4px; }
 
   #close-modal {
     position: absolute;
@@ -1565,6 +1633,7 @@
     <button id="freq-btn" aria-label="Set frequencies">%</button>
     <div>
       <h2 id="modal-title"></h2>
+      <div id="modal-action-path"></div>
       <p  id="modal-filename"></p>
     </div>
     <button id="close-modal" aria-label="Close">×</button>
@@ -3070,6 +3139,99 @@ function getStepActionLabel(path, stepIdx) {
   return "";
 }
 
+// Position colours matching the last-tap button states
+const POS_COLORS = {
+  UTG: "#e8e8e8", MP: "#50a5ff", CO: "#f0c400",
+  BTN: "#c31e1e", SB: "#ff9500", BB: "#22a03c"
+};
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+function renderActionPath(path, activeVariantLabel) {
+  const el = document.getElementById("modal-action-path");
+  if (!el) return;
+  el.innerHTML = "";
+  if (!path || path.length === 0) return;
+
+  const verbFor = (p, i) => {
+    const lbl = getStepActionLabel(p, i);
+    if (lbl === "RFI")  return "Raises";
+    if (lbl === "CC")   return "Calls";
+    if (lbl === "3B")   return "3-Bets";
+    if (lbl === "4B")   return "4-Bets";
+    if (lbl === "5B")   return "5-Bets";
+    if (lbl === "Sq")   return "Squeezes";
+    if (lbl === "C4B")  return "C4-Bets";
+    return lbl;
+  };
+
+  path.forEach((step, i) => {
+    const pos   = pathPos(step);
+    const color = POS_COLORS[pos] || "#ffffff";
+    const rgb   = hexToRgb(color);
+    const verb  = verbFor(path, i);
+
+    // Size for each step — last step from active variant (or its own chart label),
+    // intermediate steps from their node's default/first chart label.
+    let size = null;
+    if (i === path.length - 1) {
+      if (activeVariantLabel && activeVariantLabel !== "Base") size = activeVariantLabel;
+    }
+    if (!size) {
+      const node = findNode(path.slice(0, i + 1));
+      if (node) {
+        const sk    = getSizeKey(path.slice(0, i + 1));
+        const saved = getDefaultSizeLabel(sk);
+        if (saved) {
+          size = saved;
+        } else {
+          const charts = getChartsForNode(node);
+          const sized  = charts.find(c => c.label && c.label !== "Base");
+          if (sized) size = sized.label;
+        }
+      }
+    }
+
+    if (i > 0) {
+      const arr = document.createElement("span");
+      arr.className   = "ap-arrow";
+      arr.textContent = "→";
+      el.appendChild(arr);
+    }
+
+    const group = document.createElement("span");
+    group.className = "ap-group";
+    group.style.setProperty("--ap-color",        color);
+    group.style.setProperty("--ap-color-bg",     `rgba(${rgb},0.14)`);
+    group.style.setProperty("--ap-color-border",  `rgba(${rgb},0.22)`);
+
+    const badge = document.createElement("span");
+    badge.className   = "ap-badge";
+    badge.textContent = DISPLAY_NAMES[pos] || pos;
+
+    const verbEl = document.createElement("span");
+    verbEl.className   = "ap-verb";
+    verbEl.textContent = verb;
+
+    group.appendChild(badge);
+    group.appendChild(verbEl);
+
+    if (size) {
+      const sizeEl = document.createElement("span");
+      sizeEl.className   = "ap-size";
+      sizeEl.textContent = size;
+      group.appendChild(sizeEl);
+    }
+
+    el.appendChild(group);
+  });
+}
+
 function renderBreadcrumb() {
   const el = document.getElementById("breadcrumb");
   el.innerHTML = "";
@@ -3267,10 +3429,14 @@ function renderModal() {
   // Active chart + variant label (used for title and filename)
   const chart        = charts[state.activeVariantIndex] || charts[0];
   const variantLabel = charts.length > 1 ? (chart?.label || null) : null;
+  // effectiveLabel also picks up single-variant sized nodes (e.g. BB_3B-UTG-12BB.png
+  // with no base companion), where charts.length === 1 but the label is meaningful.
+  const effectiveLabel = (chart?.label && chart.label !== "Base") ? chart.label : null;
 
   // Formatted title and filename — shown in modal header
   document.getElementById("modal-title").textContent    = formatModalTitle(state.activeNode.title, variantLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
+  renderActionPath(state.activeNode.path || [], effectiveLabel);
 
   // ── Variant tabs + optional Split button ──
   const tabs = document.getElementById("variant-tabs");
