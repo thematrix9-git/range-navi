@@ -3023,8 +3023,8 @@ function renderTable() {
       table.appendChild(dealer);
     }
 
-    // ── Overview dot
-    if (getOverviewsForPosition(pos).length > 0) {
+    // ── Overview dot (always shown so the in-app manager is always accessible)
+    {
       const dot = document.createElement("button");
       dot.className = "overview-dot";
       dot.textContent = "⋯";
