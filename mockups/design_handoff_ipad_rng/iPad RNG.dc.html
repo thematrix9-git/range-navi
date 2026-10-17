@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><style>html,body{margin:0;background:#0a0b10;color:#f3f5fe;font-family:'Inter',system-ui,sans-serif}a{color:#c3c7d8}a:hover{color:#f3f5fe}</style></helmet>
+<div style="padding:32px;display:flex;gap:28px;align-items:flex-start">
+<div style="flex:none;width:290px;display:flex;flex-direction:column;gap:18px;padding:18px;border-radius:12px;background:#151920;box-shadow:0 0 0 1px #262c37">
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;font-weight:600">RNG for the iPad app</span><span style="font-size:12.5px;color:#8e92a4;line-height:1.5;text-wrap:pretty">Tap a seat to act. Tap the RNG itself to re-roll.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#a3a7b8">WHEN IT ROLLS</span>
+<sc-for list="{{ modes }}" as="m" hint-placeholder-count="3"><div onClick="{{ m.pick }}" style="{{ m.style }}" style-hover="background:#1e232c"><span style="font-weight:600">{{ m.label }}</span><span style="font-size:11.5px;color:#8e92a4;font-weight:400">{{ m.sub }}</span></div></sc-for></div>
+<sc-if value="{{ isTimer }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#a3a7b8">INTERVAL</span><div style="display:flex;gap:3px;padding:3px;border-radius:9px;background:#11141a;box-shadow:inset 0 0 0 1px #262c37"><sc-for list="{{ intervals }}" as="iv" hint-placeholder-count="4"><span onClick="{{ iv.pick }}" style="{{ iv.style }}">{{ iv.label }}</span></sc-for></div></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:11px;font-weight:600;letter-spacing:.08em;color:#a3a7b8">PLACEMENT</span>
+<sc-for list="{{ places }}" as="p" hint-placeholder-count="3"><div onClick="{{ p.pick }}" style="{{ p.style }}" style-hover="background:#1e232c"><span style="font-weight:600">{{ p.label }}</span><span style="font-size:11.5px;color:#8e92a4;font-weight:400">{{ p.sub }}</span></div></sc-for></div>
+<div style="padding-top:12px;font-size:12.5px;line-height:1.55;color:#a3a7b8;box-shadow:inset 0 1px 0 #262c37;text-wrap:pretty">My pick: <b style="color:#f3f5fe">On action</b>, in the <b style="color:#f3f5fe">centre of the felt</b>. A new number for every decision matches the poker sites, and the number never changes while you're reading the chart. A timer can flip the roll mid-decision.</div>
+</div>
+<div style="position:relative;flex:none;width:1180px;height:780px;border-radius:22px;background:#000;box-shadow:0 0 0 10px #1a1c22,0 0 0 11px #2b2f38;overflow:hidden;font-family:'Inter',system-ui,sans-serif">
+<div style="position:absolute;left:20px;top:14px;font-size:20px;font-weight:700">Range Navigator</div>
+<div style="position:absolute;left:20px;top:44px;display:flex;flex-direction:column;gap:6px;font-size:10px;color:#c9ccd4">
+<span style="display:flex;align-items:center;gap:6px"><span style="position:relative;width:24px;height:13px;border-radius:7px;background:#4caf50"><span style="position:absolute;right:2px;top:2px;width:9px;height:9px;border-radius:50%;background:#fff"></span></span>Reset path on felt tap</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="position:relative;width:24px;height:13px;border-radius:7px;background:#333"><span style="position:absolute;left:2px;top:2px;width:9px;height:9px;border-radius:50%;background:#aaa"></span></span>Show next action in sequence</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="position:relative;width:24px;height:13px;border-radius:7px;background:#333"><span style="position:absolute;left:2px;top:2px;width:9px;height:9px;border-radius:50%;background:#aaa"></span></span>Wide CC / 3B buttons</span></div>
+<div style="position:absolute;right:20px;top:30px;display:flex;align-items:center;gap:10px">
+<sc-if value="{{ atHeader }}" hint-placeholder-val="{{ false }}"><div onClick="{{ roll }}" style="height:34px;padding:0 6px 0 12px;display:flex;align-items:center;gap:8px;border-radius:17px;background:#16181d;box-shadow:inset 0 0 0 1px #2b2f38;cursor:pointer"><span style="position:relative;width:13px;height:13px;border-radius:3.5px;box-shadow:inset 0 0 0 1.25px rgba(223,225,234,.55)"><span style="position:absolute;left:2.5px;top:2.5px;width:2px;height:2px;border-radius:50%;background:rgba(223,225,234,.7)"></span><span style="position:absolute;left:5.5px;top:5.5px;width:2px;height:2px;border-radius:50%;background:rgba(223,225,234,.7)"></span><span style="position:absolute;left:8.5px;top:8.5px;width:2px;height:2px;border-radius:50%;background:rgba(223,225,234,.7)"></span></span><span style="min-width:22px;font-size:16px;font-weight:500;color:#dfe1ea;font-variant-numeric:tabular-nums">{{ rng }}</span><span style="{{ miniRing }}"><span style="width:16px;height:16px;border-radius:50%;background:#16181d"></span></span></div></sc-if>
+<div style="height:34px;padding:3px;box-sizing:border-box;display:flex;border-radius:17px;background:#16181d"><span style="padding:0 16px;display:grid;place-items:center;border-radius:14px;background:#2e3138;font-size:12px;font-weight:600">6max</span><span style="padding:0 16px;display:grid;place-items:center;font-size:12px;color:#c9ccd4">Heads-Up</span></div>
+<div style="width:140px;height:34px;padding:0 12px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;border-radius:17px;background:#16181d;font-size:12px;font-weight:600">6max 2.2bb<span style="font-size:8px;color:#aaa">▼</span></div>
+<span style="width:28px;height:28px;display:grid;place-items:center;border-radius:50%;box-shadow:inset 0 0 0 1px #3a3d44;font-size:12px;font-weight:700">?</span></div>
+<div onClick="{{ feltTap }}" style="position:absolute;left:246px;top:192px;width:691px;height:387px;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,#2c6a45,#1e4a33 70%,#173a29);box-shadow:0 0 0 7px #132a1e"></div>
+<sc-if value="{{ atFelt }}" hint-placeholder-val="{{ true }}"><div onClick="{{ roll }}" style="position:absolute;left:530px;top:345px;width:120px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer"><span style="{{ bigNum }}">{{ rng }}</span><span style="{{ bandBar }}"><span style="{{ bandFill }}"></span></span></div></sc-if>
+<sc-for list="{{ seats }}" as="s" hint-placeholder-count="6"><div onClick="{{ s.tap }}" style="{{ s.style }}">{{ s.name }}</div><div style="{{ s.dotsStyle }}">···</div></sc-for>
+<div style="position:absolute;left:22px;right:22px;top:680px;display:flex;align-items:center;font-size:12.5px;color:#a3a7b8"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hint }}</span><sc-if value="{{ atBottom }}" hint-placeholder-val="{{ false }}"><div onClick="{{ roll }}" style="margin-left:auto;height:28px;padding:0 10px;display:flex;align-items:center;gap:8px;border-radius:8px;background:#111317;box-shadow:inset 0 0 0 1px #2b2f38;cursor:pointer"><span style="position:relative;width:12px;height:12px;border-radius:3px;box-shadow:inset 0 0 0 1.2px rgba(223,225,234,.55)"><span style="position:absolute;left:2.2px;top:2.2px;width:1.8px;height:1.8px;border-radius:50%;background:rgba(223,225,234,.7)"></span><span style="position:absolute;left:5.1px;top:5.1px;width:1.8px;height:1.8px;border-radius:50%;background:rgba(223,225,234,.7)"></span><span style="position:absolute;left:8px;top:8px;width:1.8px;height:1.8px;border-radius:50%;background:rgba(223,225,234,.7)"></span></span><span style="font-size:11px;letter-spacing:.08em;color:#8e92a4">RNG</span><span style="min-width:20px;font-size:15px;font-weight:500;color:#dfe1ea;font-variant-numeric:tabular-nums">{{ rng }}</span><span style="{{ miniRing }}"><span style="width:16px;height:16px;border-radius:50%;background:#111317"></span></span></div></sc-if></div>
+<div style="position:absolute;left:18px;right:18px;top:716px;height:42px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px"><span style="display:grid;place-items:center;border-radius:21px;background:#0d0e11;font-size:13px;font-weight:600;color:#5d616b">↗ View Chart</span><span style="display:grid;place-items:center;border-radius:21px;background:#0d0e11;font-size:13px;font-weight:600;color:#5d616b">↶ Back</span><span onClick="{{ resetPath }}" style="display:grid;place-items:center;border-radius:21px;background:#3a1414;font-size:13px;font-weight:600;color:#a5605a;cursor:pointer">✕ Reset</span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { mode: 'action', place: 'felt', every: 2, rng: 63, path: [], t0: Date.now(), now: Date.now(), flash: 0 };
+  ensureTick() {
+    if (this.iv) return;
+    this.iv = setInterval(() => {
+      const now = Date.now();
+      if (this.state.mode === 'timer' && now - this.state.t0 >= this.state.every * 1000) this.doRoll(now);
+      else this.setState({ now });
+    }, 100);
+  }
+  componentDidMount() { this.setState({ t0: Date.now(), now: Date.now() }); this.ensureTick(); }
+  componentWillUnmount() { clearInterval(this.iv); this.iv = null; }
+  doRoll(now = Date.now()) {
+    let r; do { r = 1 + Math.floor(Math.random() * 100); } while (r === this.state.rng);
+    this.setState({ rng: r, t0: now, now, flash: now });
+  }
+  renderVals() {
+    this.ensureTick();
+    const { mode, place, every, rng, path, t0, flash } = this.state;
+    const now = Date.now();
+    const opt = on => ({ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '2px', borderRadius: '8px', fontSize: '13px', cursor: 'pointer', color: on ? '#f3f5fe' : '#c9ccd9', background: on ? '#262c37' : 'transparent', boxShadow: on ? 'inset 0 0 0 1px #4a5262' : 'none' });
+    const M = [['action', 'On action', 'New roll every time you tap a seat'], ['felt', 'Felt tap', 'New roll any time you tap the felt'], ['timer', 'Timer', 'Rolls every few seconds'], ['tap', 'Tap to roll', 'Only when you tap the number']];
+    const P = [['felt', 'Centre of the felt', 'Uses the empty table, easy to see'], ['header', 'Top bar', 'Next to 6max / Heads-Up'], ['bottom', 'Above the buttons', 'Right of the hint line']];
+    const pct = mode === 'timer' ? Math.max(0, Math.min(100, (now - t0) / (every * 10))) : 100;
+    const ringC = mode === 'timer' ? 'rgba(235,245,238,.55)' : 'rgba(235,245,238,.18)';
+    const fresh = now - flash < 350;
+    const band = rng <= 25 ? '#ff6b6b' : rng <= 50 ? '#ffa94d' : rng <= 75 ? '#f4f6f8' : '#4ade80';
+    const seatsPos = [['UTG', 590, 162, 'top'], ['MP', 836, 274, 'top'], ['CO', 836, 499, 'bot'], ['BTN', 590, 611, 'bot'], ['SB', 344, 499, 'bot'], ['BB', 344, 274, 'top']];
+    const tapSeat = n => () => { this.setState(s => ({ path: [...s.path, n] })); if (mode === 'action') this.doRoll(); };
+    return {
+      rng,
+      modes: M.map(([k, l, s]) => ({ label: l, sub: s, style: opt(mode === k), pick: () => this.setState({ mode: k, t0: Date.now() }) })),
+      places: P.map(([k, l, s]) => ({ label: l, sub: s, style: opt(place === k), pick: () => this.setState({ place: k }) })),
+      intervals: [1, 2, 3, 5].map(n => ({ label: n + 's', pick: () => this.setState({ every: n, t0: Date.now() }), style: { flex: 1, height: '26px', display: 'grid', placeItems: 'center', borderRadius: '6px', fontSize: '12.5px', cursor: 'pointer', color: every === n ? '#f3f5fe' : '#9397ab', fontWeight: every === n ? 600 : 500, background: every === n ? '#262c37' : 'transparent', boxShadow: every === n ? 'inset 0 0 0 1px #3a4250' : 'none' } })),
+      isTimer: mode === 'timer',
+      atFelt: place === 'felt', atHeader: place === 'header', atBottom: place === 'bottom',
+      roll: e => { if (e && e.stopPropagation) e.stopPropagation(); this.doRoll(); },
+      resetPath: () => this.setState({ path: [] }),
+      feltTap: () => { this.setState({ path: [] }); if (mode === 'felt') this.doRoll(); },
+      hint: path.length ? path.join(' › ') : 'Tap a position to begin',
+      bigRing: { width: '120px', height: '120px', borderRadius: '50%', display: 'grid', placeItems: 'center', background: mode === 'timer' ? `conic-gradient(${ringC} 0 ${100 - pct}%, rgba(235,245,238,.1) ${100 - pct}% 100%)` : 'rgba(235,245,238,.12)', boxShadow: fresh ? '0 0 0 6px rgba(235,245,238,.08)' : 'none', transition: 'box-shadow .3s' },
+      bandBar: { width: '44px', height: '3px', borderRadius: '2px', background: 'rgba(0,0,0,.25)', overflow: 'hidden', display: mode === 'timer' ? 'block' : 'none' },
+      bandFill: { display: 'block', height: '100%', width: (100 - pct) + '%', background: band, opacity: .8 },
+      bigNum: { fontSize: '38px', fontWeight: 600, lineHeight: 1, letterSpacing: '-.01em', color: band, textShadow: '0 1px 8px rgba(0,0,0,.35)', fontVariantNumeric: 'tabular-nums', opacity: fresh ? 0.6 : 1, transform: fresh ? 'scale(.94)' : 'scale(1)', transition: 'opacity .25s, transform .25s' },
+      miniRing: { width: '22px', height: '22px', borderRadius: '50%', display: mode === 'timer' ? 'grid' : 'none', placeItems: 'center', background: `conic-gradient(rgba(223,225,234,.6) 0 ${100 - pct}%, #2b2f38 ${100 - pct}% 100%)` },
+      seats: seatsPos.map(([n, x, y, d]) => ({ name: n, tap: tapSeat(n),
+        style: { position: 'absolute', left: (x - 37) + 'px', top: (y - 37) + 'px', width: '74px', height: '74px', boxSizing: 'border-box', borderRadius: '50%', display: 'grid', placeItems: 'center', background: '#22262f', boxShadow: path[path.length - 1] === n ? '0 0 0 2px #4caf50' : '0 0 0 2px #5a5f6a', fontSize: '17px', fontWeight: 700, cursor: 'pointer', userSelect: 'none' },
+        dotsStyle: { position: 'absolute', left: (x - 13) + 'px', top: (d === 'top' ? y - 63 : y + 46) + 'px', width: '26px', height: '17px', borderRadius: '9px', display: 'grid', placeItems: 'center', background: '#1a1d23', boxShadow: 'inset 0 0 0 1px #3a3d44', fontSize: '10px', color: '#c9ccd4' } }))
+    };
+  }
+}
+</script>
+</body>
+</html>
