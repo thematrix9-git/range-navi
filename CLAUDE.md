@@ -319,6 +319,14 @@ A "★ Default size" button (`sit-default-btn`) lets the user pin a preferred si
 
 Static, hand-authored documentation rendered as HTML (`#help-modal`) — the naming convention table, feature descriptions, and tips. **This is the single most important place to update whenever the naming convention or a major feature changes**, since it's the only in-app documentation the (non-coder) user has; it duplicates information also present in `data.js`'s header comment, and both should be kept in sync when the convention changes.
 
+### 6.13 RNG (centre of the felt)
+
+**Purpose:** A 1–100 random number for mixed-strategy decisions, shown in the centre of the felt. Built from `mockups/design_handoff_ipad_rng/` (README + `iPad RNG.dc.html` reference).
+
+**How it works:** The "RNG" script section (`rng` settings object, `rollRng`, `scheduleRngTimer`, `renderRng`, `initRng`). `#rng` lives in `.table-wrap` beside `#table`, **not inside it**, because `renderTable()` wipes `#table` on every render and would cancel the roll animation and the timer bar transition. The number is coloured by 25% block (red/orange/white/green) and never repeats twice in a row. Tapping it always re-rolls, and `stopPropagation` keeps that tap from counting as a felt tap. `rng.mode` controls when it rolls: `action` (default, hooked at the top of `handlePositionTap`), `felt` (hooked in the `#table` click listener), `timer` (every 1/2/3s, with a CSS-transition countdown bar, paused via `visibilitychange`), or `tap` (manual only). In HU it sits at `top: 30%`, since the Strategy button owns the exact centre.
+
+**Settings UI:** The ⚙ button next to `?` opens the `#rng-panel` popover: Show RNG toggle, Roll on (segmented), and Every (shown only for Timer). All controls are 44px tall. It uses the same touchstart-stopPropagation guard as `#overview-menu` (§11 #1). Settings are saved in `rn_rng`.
+
 ---
 
 ## 7. UI Structure
@@ -417,6 +425,7 @@ Flat `string[]` of every image path relative to `images/`, forward-slash-separat
 | `rn_size_defaults` | Single JSON object `{ sizeKey: label }` mapping every remembered size preference across the whole app |
 | `rn_freq_{chart.src}` | `{ fold?, call?, raise? }` — user-entered percentages for that exact image file |
 | `rn_wide_split` | `"true"`/`"false"` — wide vs compact CC/3B split button toggle |
+| `rn_rng` | `{ show, mode, interval }` — RNG settings (§6.13) |
 
 ### Import/export formats
 

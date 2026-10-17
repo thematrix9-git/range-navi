@@ -319,6 +319,99 @@
   }
   .strategy-btn:active { background: rgba(255,255,255,0.22); }
 
+  /* ── RNG number (centre of felt) ─────────────────────────── */
+  /* Lives in .table-wrap, NOT inside #table: renderTable() wipes #table on every
+     render, which would cancel the roll animation and the timer bar transition. */
+  .table-wrap { position: relative; width: 100%; max-width: 880px; }
+
+  #rng {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 88px;
+    height: 72px;
+    padding: 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 4;
+    touch-action: manipulation;
+  }
+  /* HU: the Strategy button owns the exact centre, so sit above it */
+  #rng.rng-hu { top: 30%; }
+
+  .rng-num {
+    font-size: 38px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.35);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  .rng-num.rng-fresh { opacity: 0.6; transform: scale(0.94); transition: none; }
+
+  /* Timer countdown bar — absolutely placed so the number never shifts */
+  .rng-bar {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 27px);
+    transform: translateX(-50%);
+    width: 44px;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(0,0,0,0.25);
+    overflow: hidden;
+  }
+  .rng-bar-fill { display: block; height: 100%; width: 100%; opacity: 0.8; }
+
+  /* ── RNG settings (⚙ popover) ────────────────────────────── */
+  #rng-panel {
+    position: fixed;
+    z-index: 120;
+    width: 340px;
+    max-width: calc(100vw - 20px);
+    padding: 14px 16px 16px;
+    background: rgba(24,24,28,0.98);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rng-panel-title { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: rgba(255,255,255,0.55); }
+  .rng-panel-label { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  #rng-panel .setting-toggle {
+    min-height: 44px;
+    justify-content: space-between;
+    font-size: 16px;
+    color: #fff;
+  }
+  .rng-seg {
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+  }
+  .rng-seg button {
+    flex: 1;
+    min-height: 44px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255,255,255,0.65);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .rng-seg button.active { background: rgba(255,255,255,0.18); color: #fff; font-weight: 600; }
+
   /* ── Overview ⋯ dot ──────────────────────────────────────── */
   .overview-dot {
     position: absolute;
@@ -1335,6 +1428,25 @@
     align-items: center;
     justify-content: center;
   }
+  /* ⚙ RNG settings button — same look as ?, invisible hit area grows it to 44px */
+  #rng-settings-btn {
+    position: relative;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  #rng-settings-btn::after { content: ""; position: absolute; inset: -4px; }
+  #rng-settings-btn.open { background: rgba(255,255,255,0.18); }
   #help-btn:hover {
     background: rgba(255,255,255,0.12);
     border-color: rgba(255,255,255,0.24);
@@ -1598,13 +1710,20 @@
       <div class="pack-picker-wrap">
         <select id="pack-picker"></select>
       </div>
+      <button id="rng-settings-btn" aria-label="RNG settings">⚙</button>
       <button id="help-btn" aria-label="Help & Documentation">?</button>
     </div>
   </header>
 
   <main>
     <div class="table-container">
-      <div class="table" id="table"></div>
+      <div class="table-wrap">
+        <div class="table" id="table"></div>
+        <div id="rng" aria-label="Random number, tap to re-roll">
+          <span class="rng-num" id="rng-num"></span>
+          <span class="rng-bar hidden" id="rng-bar"><span class="rng-bar-fill" id="rng-bar-fill"></span></span>
+        </div>
+      </div>
     </div>
     <div class="breadcrumb" id="breadcrumb"></div>
     <div class="controls">
@@ -1616,6 +1735,29 @@
 </div>
 
 <div id="overview-menu" class="hidden"></div>
+
+<div id="rng-panel" class="hidden" role="dialog" aria-label="RNG settings">
+  <div class="rng-panel-title">RNG</div>
+  <label class="setting-toggle">
+    <span>Show RNG</span>
+    <input type="checkbox" id="rng-show-toggle">
+  </label>
+  <div class="rng-panel-label">Roll on</div>
+  <div class="rng-seg" id="rng-mode-seg">
+    <button data-mode="action">Seat tap</button>
+    <button data-mode="felt">Felt tap</button>
+    <button data-mode="timer">Timer</button>
+    <button data-mode="tap">Manual</button>
+  </div>
+  <div id="rng-every-group">
+    <div class="rng-panel-label">Every</div>
+    <div class="rng-seg" id="rng-interval-seg">
+      <button data-interval="1">1s</button>
+      <button data-interval="2">2s</button>
+      <button data-interval="3">3s</button>
+    </div>
+  </div>
+</div>
 
 <!-- Overview Manager modal -->
 <div id="overview-manager" class="hidden">
@@ -2508,6 +2650,7 @@ function getOldStyleCharts(node, pack, manifest) {
 // action: null/"3B" = normal 3-bet step, "CC" = cold-call step (appends "_CC")
 function handlePositionTap(pos, action) {
   closeOverviewMenu();
+  if (rng.show && rng.mode === "action") rollRng();
   const now      = Date.now();
   const isDouble = (pos === lastTap.pos) && (now - lastTap.time < DOUBLE_TAP_MS);
   lastTap = { pos, time: isDouble ? 0 : now };
@@ -3023,6 +3166,7 @@ function render() {
   renderFormatPicker();
   renderPackPicker();
   renderTable();
+  renderRng();
   renderBreadcrumb();
   renderControls();
 }
@@ -3956,6 +4100,148 @@ document.getElementById("freq-panel").addEventListener("touchend", e => {
 }, { passive: true });
 
 // ═══════════════════════════════════════════════════════════════
+// RNG — a 1–100 number in the centre of the felt
+// rng.mode: "action" = roll on every seat tap, "felt" = roll on felt tap,
+//           "timer" = roll every rng.interval seconds, "tap" = only when the number is tapped.
+// Tapping the number always re-rolls, in every mode.
+// Persisted as one JSON object under rn_rng.
+// ═══════════════════════════════════════════════════════════════
+const RNG_MODES     = ["action", "felt", "timer", "tap"];
+const RNG_INTERVALS = [1, 2, 3];
+const rng = { show: true, mode: "action", interval: 2 };
+let rngValue = 0;
+let rngTimer = null;
+
+function loadRngSettings() {
+  try {
+    const s = JSON.parse(localStorage.getItem("rn_rng") || "null");
+    if (!s) return;
+    if (typeof s.show === "boolean")        rng.show = s.show;
+    if (RNG_MODES.includes(s.mode))         rng.mode = s.mode;
+    if (RNG_INTERVALS.includes(s.interval)) rng.interval = s.interval;
+  } catch {}
+}
+
+function saveRngSettings() {
+  try { localStorage.setItem("rn_rng", JSON.stringify(rng)); } catch {}
+}
+
+// 25% blocks: red / orange / white / green
+function rngColor(n) {
+  return n <= 25 ? "#ff6b6b" : n <= 50 ? "#ffa94d" : n <= 75 ? "#f4f6f8" : "#4ade80";
+}
+
+function rollRng() {
+  let r;
+  do { r = 1 + Math.floor(Math.random() * 100); } while (r === rngValue);  // never repeat twice in a row
+  rngValue = r;
+  const num = document.getElementById("rng-num");
+  num.textContent = r;
+  num.style.color = rngColor(r);
+  document.getElementById("rng-bar-fill").style.background = rngColor(r);
+  // Snap to .6 / .94 with no transition, then release so it eases back to 1 over 250ms
+  num.classList.add("rng-fresh");
+  void num.offsetWidth;
+  num.classList.remove("rng-fresh");
+  scheduleRngTimer();   // any roll (incl. manual) restarts the timer countdown
+}
+
+// Timer mode: CSS transition empties the bar while a setTimeout waits for the next roll.
+// Paused while the app is in the background (visibilitychange), restarted on return.
+function scheduleRngTimer() {
+  clearTimeout(rngTimer);
+  rngTimer = null;
+  const isTimer = rng.show && rng.mode === "timer";
+  const fill    = document.getElementById("rng-bar-fill");
+  document.getElementById("rng-bar").classList.toggle("hidden", !isTimer);
+  fill.style.transition = "none";
+  fill.style.width = "100%";
+  if (!isTimer || document.hidden) return;
+  void fill.offsetWidth;
+  fill.style.transition = `width ${rng.interval}s linear`;
+  fill.style.width = "0%";
+  rngTimer = setTimeout(rollRng, rng.interval * 1000);
+}
+
+function renderRng() {
+  const el = document.getElementById("rng");
+  el.classList.toggle("hidden", !rng.show);
+  el.classList.toggle("rng-hu", state.format === "headsUp");
+}
+
+function renderRngPanel() {
+  document.getElementById("rng-show-toggle").checked = rng.show;
+  document.querySelectorAll("#rng-mode-seg button").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === rng.mode));
+  document.querySelectorAll("#rng-interval-seg button").forEach(b =>
+    b.classList.toggle("active", Number(b.dataset.interval) === rng.interval));
+  document.getElementById("rng-every-group").classList.toggle("hidden", rng.mode !== "timer");
+}
+
+function openRngPanel() {
+  const btn   = document.getElementById("rng-settings-btn");
+  const panel = document.getElementById("rng-panel");
+  const rect  = btn.getBoundingClientRect();
+  panel.style.top   = (rect.bottom + 8) + "px";
+  panel.style.right = Math.max(10, window.innerWidth - rect.right) + "px";
+  renderRngPanel();
+  panel.classList.remove("hidden");
+  btn.classList.add("open");
+}
+
+function closeRngPanel() {
+  document.getElementById("rng-panel").classList.add("hidden");
+  document.getElementById("rng-settings-btn").classList.remove("open");
+}
+
+function initRng() {
+  loadRngSettings();
+
+  // Tap the number → re-roll. stopPropagation keeps it from counting as a felt tap.
+  const rngEl = document.getElementById("rng");
+  rngEl.addEventListener("click", e => { e.stopPropagation(); rollRng(); });
+
+  const btn   = document.getElementById("rng-settings-btn");
+  const panel = document.getElementById("rng-panel");
+  btn.addEventListener("click", e => {
+    e.stopPropagation();
+    if (panel.classList.contains("hidden")) openRngPanel(); else closeRngPanel();
+  });
+  // Same iOS touchstart-cancels-click guard as #overview-menu (CLAUDE.md §11 #1):
+  // without these, the document touchstart closer below would hide the panel
+  // mid-tap and iOS would drop the click on the control (or instantly re-open via ⚙).
+  btn.addEventListener("touchstart",   e => e.stopPropagation(), { passive: true });
+  panel.addEventListener("touchstart", e => e.stopPropagation(), { passive: true });
+  panel.addEventListener("click",      e => e.stopPropagation());
+  document.addEventListener("touchstart", closeRngPanel, { passive: true });
+  document.addEventListener("click",      closeRngPanel);
+
+  document.getElementById("rng-show-toggle").addEventListener("change", e => {
+    rng.show = e.target.checked;
+    saveRngSettings();
+    renderRng();
+    scheduleRngTimer();
+  });
+  document.querySelectorAll("#rng-mode-seg button").forEach(b => b.addEventListener("click", () => {
+    rng.mode = b.dataset.mode;
+    saveRngSettings();
+    renderRngPanel();
+    scheduleRngTimer();
+  }));
+  document.querySelectorAll("#rng-interval-seg button").forEach(b => b.addEventListener("click", () => {
+    rng.interval = Number(b.dataset.interval);
+    saveRngSettings();
+    renderRngPanel();
+    scheduleRngTimer();
+  }));
+
+  document.addEventListener("visibilitychange", scheduleRngTimer);
+
+  renderRng();
+  rollRng();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // Init
 // ═══════════════════════════════════════════════════════════════
 function init() {
@@ -3995,6 +4281,7 @@ function init() {
   // This handles wide-mode flanking buttons (CALL / 3B) whose screen positions shift after
   // re-render, so the second physical tap can land on empty felt instead of a button.
   document.getElementById("table").addEventListener("click", () => {
+    if (rng.show && rng.mode === "felt") rollRng();
     const now = Date.now();
     if (lastTap.pos && (now - lastTap.time < DOUBLE_TAP_MS)) {
       const lastStep = state.currentPath[state.currentPath.length - 1];
@@ -4047,6 +4334,7 @@ function init() {
   document.addEventListener("click",      () => closeOverviewMenu());
   document.addEventListener("touchstart", () => closeOverviewMenu(), { passive: true });
 
+  initRng();
   render();
 }
 
