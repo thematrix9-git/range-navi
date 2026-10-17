@@ -1744,7 +1744,7 @@
   </label>
   <div class="rng-panel-label">Roll on</div>
   <div class="rng-seg" id="rng-mode-seg">
-    <button data-mode="action">Seat tap</button>
+    <button data-mode="action">Table tap</button>
     <button data-mode="felt">Felt tap</button>
     <button data-mode="timer">Timer</button>
     <button data-mode="tap">Manual</button>
@@ -4101,7 +4101,7 @@ document.getElementById("freq-panel").addEventListener("touchend", e => {
 
 // ═══════════════════════════════════════════════════════════════
 // RNG — a 1–100 number in the centre of the felt
-// rng.mode: "action" = roll on every seat tap, "felt" = roll on felt tap,
+// rng.mode: "action" = roll on any table tap (seat or felt), "felt" = roll on felt tap only,
 //           "timer" = roll every rng.interval seconds, "tap" = only when the number is tapped.
 // Tapping the number always re-rolls, in every mode.
 // Persisted as one JSON object under rn_rng.
@@ -4281,7 +4281,7 @@ function init() {
   // This handles wide-mode flanking buttons (CALL / 3B) whose screen positions shift after
   // re-render, so the second physical tap can land on empty felt instead of a button.
   document.getElementById("table").addEventListener("click", () => {
-    if (rng.show && rng.mode === "felt") rollRng();
+    if (rng.show && (rng.mode === "felt" || rng.mode === "action")) rollRng();
     const now = Date.now();
     if (lastTap.pos && (now - lastTap.time < DOUBLE_TAP_MS)) {
       const lastStep = state.currentPath[state.currentPath.length - 1];
