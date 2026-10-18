@@ -843,7 +843,8 @@
     text-align: center;
   }
 
-  #chart-modal h2   { font-size: 22px; font-weight: 700; }
+  #chart-modal h2   { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+  #chart-modal h2 .title-size { color: rgba(255,255,255,0.45); font-weight: 600; }
   #modal-path       { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
   #modal-filename   {
     font-size: 11px;
@@ -860,69 +861,61 @@
   #chart-modal header.modal-head { padding-bottom: 8px; }
   #chart-modal h2   { margin-bottom: 0; }
 
+  /* The whole trail sits in one rounded pill */
   #modal-action-path {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-top: 5px;
+    gap: 12px;
+    width: fit-content;
+    max-width: 100%;
+    margin: 12px auto 0;
+    padding: 9px 20px;
     flex-wrap: wrap;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.03);
   }
   #modal-action-path:empty { display: none; margin: 0; }
 
-  /* Each "MP Raises 2.5bb" group */
+  /* Each "SB 3B 12bb" step */
   .ap-group {
     display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    border: 1px solid var(--ap-color-border);
-    border-radius: 999px;
-    padding: 5px 13px 5px 5px;
+    align-items: baseline;
+    gap: 8px;
     white-space: nowrap;
+    font-size: 16px;
   }
 
-  /* Small coloured badge for the position name */
+  /* Position name — coloured text (POS_COLORS) */
   .ap-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
     font-weight: 800;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     color: var(--ap-color);
-    background: var(--ap-color-bg);
-    border-radius: 999px;
-    padding: 3px 8px;
-    line-height: 1.2;
   }
 
-  /* Action verb — dim, lightweight */
+  /* Action verb — dim, unless this step carries a size */
   .ap-verb {
-    font-size: 13px;
-    font-weight: 400;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 0.01em;
+    font-weight: 500;
+    color: rgba(255,255,255,0.45);
   }
+  .ap-group.has-size .ap-verb { color: rgba(255,255,255,0.95); font-weight: 700; }
 
   /* Bet size — bold, white, the thing you actually read */
   .ap-size {
-    font-size: 15px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.92);
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    color: #fff;
   }
 
-  /* Thin arrow separator */
+  /* Chevron separator */
   .ap-arrow {
-    font-size: 12px;
-    color: rgba(255,255,255,0.2);
+    font-size: 16px;
+    color: rgba(255,255,255,0.28);
     flex-shrink: 0;
-    font-weight: 300;
   }
 
-  /* Tighten the filename line */
-  #modal-filename { margin-top: 4px; }
+  #modal-filename { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.35); }
 
   #close-modal {
     position: absolute;
@@ -1059,38 +1052,39 @@
   }
   #freq-clear-btn:hover { color: rgba(255,255,255,0.6); }
 
+  /* Size tabs sit between the header and the chart (DOM order), so they're easy to see and reach */
   .variant-tabs {
-    order: 1;               /* push below zoom/sequence/compare areas (which have default order 0) */
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 12px 64px 22px;
+    gap: 12px;
+    padding: 10px 110px 4px;   /* side room for the absolutely-placed Split button */
     overflow-x: auto;
     flex-shrink: 0;
     scrollbar-width: none;
     cursor: default;
-    border-top: 1px solid rgba(255,255,255,0.06);
   }
   .variant-tabs::-webkit-scrollbar { display: none; }
 
   .variant-tabs button {
-    background: rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.7);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 999px;
-    font-size: 15px;
-    font-weight: 600;
+    height: 52px;
+    padding: 0 26px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.82);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    font-size: 17px;
+    font-weight: 700;
     cursor: pointer;
     white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .variant-tabs button.active {
-    background: rgba(80, 160, 255, 0.28);
-    color: #7ec8ff;
-    border-bottom: 2px solid #7ec8ff;
+    background: rgba(56, 110, 210, 0.35);
+    color: #e6efff;
+    border: 1.5px solid #5b8def;
   }
 
   /* ── Zoom area ────────────────────────────────────────────── */
@@ -1116,6 +1110,9 @@
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
+  /* With size tabs above the chart, most of the 70px gap is taken by the tabs themselves.
+     34px still leaves room for the % frequency bar, which sits 26px above the image. */
+  #chart-modal.has-tabs #zoom-wrapper { padding-top: 34px; }
 
   #zoom-wrapper img {
     max-width: 100%;
@@ -1283,23 +1280,19 @@
   #compare-area::-webkit-scrollbar { display: none; }
   #compare-area.hidden { display: none !important; }
 
-  .variant-compare-btn {
+  .variant-tabs .variant-compare-btn {
     position: absolute;
     right: 16px;
-    top: 50%;
+    top: calc(50% + 3px);
     transform: translateY(-50%);
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.5);
-    border-radius: 999px;
-    padding: 6px 14px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
     transition: background 0.15s, color 0.15s;
   }
-  .variant-compare-btn.active {
+  .variant-tabs .variant-compare-btn.active {
     background: rgba(255,255,255,0.18);
     color: #fff;
     border-color: rgba(255,255,255,0.28);
@@ -1307,109 +1300,50 @@
 
   .hidden { display: none !important; }
 
-  /* ── Wide action buttons — expanded CC/3B (three full circles) ───── */
-  /* The center circle shows the position label — dimmed but clearly readable */
-  .split-wide-center {
-    opacity: 0.62;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    border-style: dashed !important;
-    border-color: rgba(255,255,255,0.25) !important;
-    pointer-events: none;   /* position label is just a reference; tap CALL or 3B */
-  }
-  /* Shared tweaks for the two action circles — label only, no sub-text */
-  .split-wide-action {
-    width: 78px !important;
-    height: 78px !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.02em;
-  }
-  /* CC — cooler border to signal "passive" */
-  .split-wide-cc {
-    border-color: rgba(160, 200, 255, 0.55) !important;
-    color: #a8cfff;
-  }
-  /* 3B — warmer border to signal "aggressive" */
-  .split-wide-3b {
-    border-color: rgba(255, 120, 120, 0.65) !important;
-    color: #ff9494;
-  }
-  /* Per-position tint (matches existing in-path / last-tap colours, dimmed) */
-  .split-wide-cc[data-pos="BTN"],
-  .split-wide-3b[data-pos="BTN"],
-  .split-wide-center[data-pos="BTN"] { background: rgba(50, 22, 22, 0.95); }
-  .split-wide-cc[data-pos="SB"],
-  .split-wide-3b[data-pos="SB"],
-  .split-wide-center[data-pos="SB"]  { background: rgba(48, 30, 12, 0.95); }
-
-  /* ── Split position buttons (CC left / 3B right) ────────────────── */
-  /* Wrapper positioned exactly like .position-btn */
-  .split-pos-wrap {
+  /* ── CALL / 3-BET split seat: one capsule, two halves ──────────────── */
+  /* Positioned exactly like .position-btn. --half / --cap-h set the size:
+     compact by default, .wide (the "Wide CC / 3B buttons" setting) = 130px halves. */
+  .split-capsule {
+    --half: 72px;
+    --cap-h: 92px;
     position: absolute;
     left: var(--x);
     top:  var(--y);
     transform: translate(-50%, -50%);
-    width: 78px;
-    height: 78px;
-    border-radius: 50%;
+    width: calc(var(--half) * 2);
+    height: var(--cap-h);
+    border-radius: 999px;
     display: flex;
     overflow: hidden;
-    border: 3px solid rgba(255,255,255,0.35);
-    box-sizing: border-box;
-    cursor: pointer;
+    border: 3px solid rgba(255,255,255,0.55);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.5);
+    z-index: 3;
   }
+  .split-capsule.wide { --half: 130px; --cap-h: 104px; }
+
   .split-half {
     flex: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgb(31, 36, 46);
-    color: rgba(255,255,255,0.85);
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
     padding: 0;
-    gap: 2px;
-    transition: background 0.15s;
-  }
-  .split-half:active { background: rgba(255,255,255,0.12); }
-  .split-half:hover  { background: rgba(255,255,255,0.07); }
-  .split-cc  { border-right: 1px solid rgba(255,255,255,0.18); }
-  .split-3b  { border-left:  none; }
-  .split-action-lbl {
-    font-size: 10px;
-    font-weight: 700;
-    opacity: 0.65;
-    line-height: 1;
-  }
-  .split-pos-lbl {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1;
-  }
-  /* Per-position colours on split halves (mirror .position-btn[data-pos]) */
-  .split-pos-wrap[data-pos="BTN"] .split-half { background: rgba(45,28,28,1); }
-  .split-pos-wrap[data-pos="BTN"] .split-half:hover { background: rgba(80,35,35,1); }
-  .split-pos-wrap[data-pos="SB"]  .split-half { background: rgba(45,32,18,1); }
-  .split-pos-wrap[data-pos="SB"]  .split-half:hover { background: rgba(75,45,20,1); }
-
-  /* "Set default" star button inside the variant-tabs bar */
-  .sit-default-btn {
-    background: none;
-    border: 1px solid rgba(255,255,255,0.18);
-    color: rgba(255,255,255,0.5);
-    border-radius: 4px;
-    font-size: 13px;
-    padding: 4px 8px;
+    border: none;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s;
-    margin-left: 4px;
+    transition: filter 0.15s;
   }
-  .sit-default-btn:hover        { color: rgba(255,255,255,0.9); border-color: rgba(255,255,255,0.35); }
-  .sit-default-btn.is-default   { color: #f0c400; border-color: rgba(240,196,0,0.4); }
+  .split-half:active { filter: brightness(1.15); }
+  .split-cc { background: #3f9a5f; border-right: 1px solid rgba(0,0,0,0.35); }   /* Call — light green */
+  .split-3b { background: #b83c3c; }                                             /* 3B — red */
+  .split-capsule.wide .split-half { font-size: 20px; }
+
+  /* "Set default" star button — same shape as the size tabs (.variant-tabs button), dimmer until set */
+  .variant-tabs .sit-default-btn            { color: rgba(255,255,255,0.55); }
+  .variant-tabs .sit-default-btn.is-default { color: rgba(255,255,255,0.9); }
 
   /* ── Help Button & Modal ────────────────────────────────────────── */
   #help-btn {
@@ -1624,8 +1558,14 @@
 
   @media (max-width: 820px) {
     .position-btn { width: 78px; height: 78px; font-size: 18px; border-width: 2px; }
-    .split-wide-action { width: 64px !important; height: 64px !important; font-size: 12px !important; }
-    .split-pos-wrap { width: 64px; height: 64px; }
+    /* Narrow screens: Split joins the tab row instead of floating at the right */
+    .variant-tabs { padding: 14px 16px 6px; justify-content: flex-start; }
+    .variant-tabs::before, .variant-tabs::after { content: ""; margin: auto; }
+    .variant-tabs .variant-compare-btn { position: static; transform: none; height: 52px; }
+    .split-capsule      { --half: 56px; --cap-h: 74px; }
+    .split-capsule.wide { --half: 92px; --cap-h: 82px; }
+    .split-half { font-size: 15px; }
+    .split-capsule.wide .split-half { font-size: 17px; }
 
     /* Bigger toggles on tablet/iPad */
     .setting-toggle { font-size: 15px; gap: 9px; }
@@ -1670,8 +1610,13 @@
     .controls button { padding: 10px 12px; font-size: 13px; }
 
     .position-btn { width: 62px; height: 62px; font-size: 15px; }
-    .split-wide-action { width: 50px !important; height: 50px !important; font-size: 11px !important; }
-    .split-pos-wrap { width: 50px; height: 50px; }
+    .variant-tabs { gap: 8px; }
+    .variant-tabs button, .variant-tabs .variant-compare-btn { height: 44px; padding: 0 16px; font-size: 15px; border-radius: 14px; }
+    #chart-modal h2 { font-size: 20px; }
+    .ap-group { font-size: 14px; }
+    .split-capsule      { --half: 42px; --cap-h: 58px; }
+    .split-capsule.wide { --half: 60px; --cap-h: 62px; }
+    .split-half, .split-capsule.wide .split-half { font-size: 13px; }
   }
 
 
@@ -2003,7 +1948,7 @@ let autoResetOnFeltTap = true;
 let showSequence        = false;
 let showVariantCompare  = false;
 
-// Wide CC/3B buttons — show three full circles instead of split halves
+// Wide CC/3B buttons — the CALL/3-BET capsule uses its large (130px per half) size
 let wideActionButtons = false;
 
 const POSITIONS = {
@@ -3196,7 +3141,7 @@ function renderTable() {
   const isHU        = state.format === "headsUp";
 
   const RX = 42, RY = 60;  // RX=42 keeps edge positions (~13%) far enough from the border
-                            // that wide-split CALL buttons (pos−11%) stay on-screen
+                            // that a wide CALL/3-BET capsule stays on-screen
 
   positions.forEach((pos, i) => {
     const angle = (2 * Math.PI * i) / positions.length - Math.PI / 2;
@@ -3218,68 +3163,25 @@ function renderTable() {
     const useSplit = opener && canColdCall(pos, opener) && stepIndex === -1;
 
     if (useSplit) {
-      if (wideActionButtons) {
-        // ── Wide mode: three full circles, always horizontal ─────
-        // Symmetric:  [CALL at bx−11%]  [POS at bx]  [3B at bx+11%]
-        // RX=42 ensures SB/BB land at ~13% so CALL (at ~2%) stays on-screen.
-        const OFFSET = 11;
-        const ccX = bx - OFFSET;
-        const tbX = bx + OFFSET;
+      // ── Split seat: one capsule, CALL (left) | 3-BET (right) ─────
+      // "Wide CC / 3B buttons" only changes the capsule's size (.wide).
+      const wrap = document.createElement("div");
+      wrap.className = "split-capsule" + (wideActionButtons ? " wide" : "");
+      wrap.dataset.pos = pos;
+      wrap.style.setProperty("--x", bx + "%");
+      wrap.style.setProperty("--y", by + "%");
 
-        // Helper: build a flanking circle button
-        const makeSplitCircle = (cls, actionLbl, xPct, yPct, action) => {
-          const btn = document.createElement("button");
-          btn.className = `position-btn split-wide-action ${cls}`;
-          btn.dataset.pos = pos;
-          btn.style.setProperty("--x", xPct + "%");
-          btn.style.setProperty("--y", yPct + "%");
-          btn.textContent = actionLbl;
-          btn.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, action); });
-          table.appendChild(btn);
-        };
-
-        // Centre: position name label (dashed ring, non-interactive reference)
-        const center = document.createElement("button");
-        center.className = `position-btn split-wide-center`;
-        center.dataset.pos = pos;
-        center.style.setProperty("--x", bx + "%");
-        center.style.setProperty("--y", by + "%");
-        center.textContent = DISPLAY_NAMES[pos] || pos;
-        table.appendChild(center);
-
-        makeSplitCircle("split-wide-cc", "CALL", ccX, by, "CC");
-        makeSplitCircle("split-wide-3b", "3B",   tbX, by, "3B");
-
-      } else {
-        // ── Compact mode: single circle split into two halves ─────
-        const wrap = document.createElement("div");
-        wrap.className = "split-pos-wrap";
-        wrap.dataset.pos = pos;
-        wrap.style.setProperty("--x", bx + "%");
-        wrap.style.setProperty("--y", by + "%");
-
-        const ccHalf = document.createElement("button");
-        ccHalf.className = "split-half split-cc";
-        const ccLbl = document.createElement("span");
-        ccLbl.className = "split-action-lbl"; ccLbl.textContent = "CC";
-        const ccPos = document.createElement("span");
-        ccPos.className = "split-pos-lbl"; ccPos.textContent = DISPLAY_NAMES[pos] || pos;
-        ccHalf.appendChild(ccLbl); ccHalf.appendChild(ccPos);
-        ccHalf.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "CC"); });
-
-        const tbHalf = document.createElement("button");
-        tbHalf.className = "split-half split-3b";
-        const tbLbl = document.createElement("span");
-        tbLbl.className = "split-action-lbl"; tbLbl.textContent = "3B";
-        const tbPos = document.createElement("span");
-        tbPos.className = "split-pos-lbl"; tbPos.textContent = DISPLAY_NAMES[pos] || pos;
-        tbHalf.appendChild(tbLbl); tbHalf.appendChild(tbPos);
-        tbHalf.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, "3B"); });
-
-        wrap.appendChild(ccHalf);
-        wrap.appendChild(tbHalf);
-        table.appendChild(wrap);
-      }
+      const makeHalf = (cls, label, action) => {
+        const half = document.createElement("button");
+        half.className   = `split-half ${cls}`;
+        half.textContent = label;
+        half.setAttribute("aria-label", `${DISPLAY_NAMES[pos] || pos} ${label}`);
+        half.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos, action); });
+        wrap.appendChild(half);
+      };
+      makeHalf("split-cc", "Call", "CC");
+      makeHalf("split-3b", "3B",   "3B");
+      table.appendChild(wrap);
 
     } else {
       // ── Normal position button ────────────────────────────────
@@ -3380,6 +3282,48 @@ function hexToRgb(hex) {
   return `${r},${g},${b}`;
 }
 
+// ── Which step does a legacy chart's size belong to? ─────────────────────
+// In legacy (filename-convention) packs a size suffix describes ONE action:
+//   • "own action" charts — the last step is a new actor (RFI, 3B, CC, Squeeze, C4B):
+//       the size is the hero's own action, e.g. BTN_3B-UTG-7bb = BTN 3-bets to 7bb.
+//   • "facing" charts — the last step re-enters the path (A-B_3B, B-A_4B, …_C4B,
+//       …_Squeeze, C-B-A_4B): the size is the action being faced, i.e. the step just
+//       before the hero, e.g. BTN-SB_3B-10bb = SB 3-bet to 10bb, BTN's size unknown.
+// Schema-v2 packs don't use this: their metadata carries an exact size per step.
+function isReentryStep(path, i) {
+  const pos = pathPos(path[i]);
+  return path.slice(0, i).some(s => pathPos(s) === pos);
+}
+
+// Returns one size label (or null) per step of `path`.
+// activeLabel: the open chart's tab label for the full path; pass undefined when no
+// chart is open for this exact path, and the full path's node is looked up instead.
+function legacyStepSizes(path, activeLabel) {
+  const last = path.length - 1;
+  const sizeOf = prefix => {
+    if (prefix.length === path.length && activeLabel !== undefined) {
+      return activeLabel && activeLabel !== "Base" ? activeLabel : null;
+    }
+    const saved = getDefaultSizeLabel(getSizeKey(prefix));
+    if (saved) return saved;
+    const node  = findNode(prefix) || { path: prefix, imageFolder: pathPos(prefix[prefix.length - 1]) };
+    const sized = getChartsForNode(node).find(c => c.label && c.label !== "Base");
+    return sized ? sized.label : null;
+  };
+  return path.map((_, i) => {
+    // The step being faced by a re-entering hero takes the full chart's size
+    if (i === last - 1 && isReentryStep(path, last)) return sizeOf(path);
+    // A re-entering hero's own response size isn't encoded in legacy filenames
+    if (i === last && isReentryStep(path, last)) return null;
+    // A new actor's own action: its own node's sized charts
+    if (!isReentryStep(path, i)) return sizeOf(path.slice(0, i + 1));
+    // A re-entering step mid-path (e.g. the 4-bet in a longer line): described by
+    // the next node, where the following player faces it
+    if (i + 1 <= last && isReentryStep(path, i + 1)) return sizeOf(path.slice(0, i + 2));
+    return null;
+  });
+}
+
 function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
   const el = document.getElementById("modal-action-path");
   if (!el) return;
@@ -3388,6 +3332,7 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
   const metadataTrail = metadataRecord
     ? window.RANGE_NAVIGATOR_CORE.actionTrail(metadataRecord, path)
     : null;
+  const legacySizes = metadataRecord ? null : legacyStepSizes(path, activeVariantLabel || null);
 
   const verbFor = (p, i) => {
     const lbl = getStepActionLabel(p, i);
@@ -3407,38 +3352,21 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
     const rgb   = hexToRgb(color);
     let verb  = verbFor(path, i);
 
-    // Size for each step — last step from active variant (or its own chart label),
-    // intermediate steps from their node's default/first chart label.
-    // Falls back to a synthetic node when findNode returns null (e.g. squeeze paths
-    // not in data.js) so getChartsForNode can still resolve sizes via path structure.
+    // Size for each step: schema-v2 packs read it from metadata; legacy packs map the
+    // active tab's size to the step it describes (see legacyStepSizes).
     let size = null;
     if (metadataRecord) {
       const item = metadataTrail?.[i];
       if (item?.actionLabel) verb = item.actionLabel;
       if (item?.sizeLabel) size = item.sizeLabel;
     } else {
-      if (i === path.length - 1) {
-        if (activeVariantLabel && activeVariantLabel !== "Base") size = activeVariantLabel;
-      }
-      const prefix  = path.slice(0, i + 1);
-      if (!size) {
-        const node    = findNode(prefix) || { path: prefix, imageFolder: pos };
-        const sk      = getSizeKey(prefix);
-        const saved   = getDefaultSizeLabel(sk);
-        if (saved) {
-          size = saved;
-        } else {
-          const charts = getChartsForNode(node);
-          const sized  = charts.find(c => c.label && c.label !== "Base");
-          if (sized) size = sized.label;
-        }
-      }
+      size = legacySizes[i];
     }
 
     if (i > 0) {
       const arr = document.createElement("span");
       arr.className   = "ap-arrow";
-      arr.textContent = "→";
+      arr.textContent = "›";
       el.appendChild(arr);
     }
 
@@ -3460,6 +3388,7 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
     group.appendChild(verbEl);
 
     if (size) {
+      group.classList.add("has-size");
       const sizeEl = document.createElement("span");
       sizeEl.className   = "ap-size";
       sizeEl.textContent = size;
@@ -3479,6 +3408,19 @@ function renderBreadcrumb() {
     empty.textContent = "Tap a position to begin";
     el.appendChild(empty);
     return;
+  }
+
+  // Legacy packs: map sizes to the steps they describe (see legacyStepSizes). The open
+  // chart's tab only counts when it's for exactly this path.
+  let legacySizes = null;
+  if (!getPackMetadata(getCurrentPack())) {
+    let activeLabel;
+    const anp = state.activeNode?.path;
+    if (anp && anp.length === state.currentPath.length && anp.every((p, j) => p === state.currentPath[j])) {
+      const charts = getChartsForNode(state.activeNode);
+      activeLabel = (charts[state.activeVariantIndex] || charts[0])?.label || null;
+    }
+    legacySizes = legacyStepSizes(state.currentPath, activeLabel);
   }
 
   for (let i = 1; i <= state.currentPath.length; i++) {
@@ -3502,7 +3444,9 @@ function renderBreadcrumb() {
     // file (e.g. SB_3B-UTG-11bb.png with no base companion), giving length === 1
     // with a non-null label that should still be shown.
     let sizeLabel = null;
-    if (node) {
+    if (legacySizes) {
+      sizeLabel = legacySizes[stepIdx];
+    } else if (node) {
       if (state.activeNode && state.activeNode.path) {
         const anp = state.activeNode.path;
         if (anp.length >= prefix.length && prefix.every((p, j) => p === anp[j])) {
@@ -3583,22 +3527,35 @@ function getNextNode() {
 
 // ─── Title formatting ─────────────────────────────────────────────
 // Applies display-friendly renaming rules without touching data.js:
-//   "X vs Y open"  → "X 3B vs Y"
-//   "X vs Y 3bet"  → "X vs Y 3B"
-//   "X vs Y 4bet"  → "X vs Y 4B"  (same for 5B etc.)
-//   Appends "· {size}" when a specific variant is active.
+//   "X vs Y open"  → "X 3-Bet vs Y"
+//   "X vs Y 3bet"  → "X vs Y · 3-Bet"   (also "3-bet", and 4/5-bet)
+//   "cold 4bet"    → "cold 4-Bet"
+function formatTitleText(title) {
+  let t = title || '';
+  t = t.replace(/^(.+?) vs (.+?) open$/i, '$1 3-Bet vs $2');
+  t = t.replace(/\b(\d)-?bet\b/gi, (_, n) => `${n}-Bet`);
+  t = t.replace(/^(\S+ vs \S+) (\d-Bet)$/, '$1 · $2');
+  return t;
+}
+
+// Plain-text form (sequence/compare captions): appends "· {size}" when a variant is active.
 function formatModalTitle(title, variantLabel) {
   if (!title) return '';
-  let t = title;
+  const t = formatTitleText(title);
+  return variantLabel ? `${t} · ${variantLabel}` : t;
+}
 
-  // "X vs Y open" → "X 3B vs Y"
-  t = t.replace(/^(.+?) vs (.+?) open$/i, '$1 3B vs $2');
-
-  // "Xbet" → "XB"  (handles 3bet/4bet/5bet anywhere in the string)
-  t = t.replace(/\b(\d)bet\b/gi, (_, n) => `${n}B`);
-
-  if (variantLabel) t += ' · ' + variantLabel;
-  return t;
+// Modal heading: "BTN vs SB · 3-Bet" with the size in grey after it.
+function renderModalTitle(title, variantLabel) {
+  const h = document.getElementById("modal-title");
+  const text = formatTitleText(title);
+  h.textContent = text;
+  if (variantLabel) {
+    const size = document.createElement("span");
+    size.className   = "title-size";
+    size.textContent = (text.includes("·") ? " " : " · ") + variantLabel;
+    h.appendChild(size);
+  }
 }
 
 function makeSeqPanel(caption, chart) {
@@ -3676,7 +3633,7 @@ function renderModal() {
     state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = chart.metadata.nodeId;
   }
   const activeTitle = chart?.metadata?.title || state.activeNode.title;
-  document.getElementById("modal-title").textContent    = formatModalTitle(activeTitle, variantLabel);
+  renderModalTitle(activeTitle, variantLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
   renderActionPath(state.activeNode.path || [], effectiveLabel, chart?.metadata || null);
 
@@ -3773,6 +3730,7 @@ function renderModal() {
     showVariantCompare = false;   // auto-off if only 1 chart
     tabs.style.display = "none";
   }
+  document.getElementById("chart-modal").classList.toggle("has-tabs", charts.length > 1);
 
   const zoomArea    = document.getElementById("zoom-area");
   const seqArea     = document.getElementById("sequence-area");

@@ -303,8 +303,7 @@ A "★ Default size" button (`sit-default-btn`) lets the user pin a preferred si
 ### 6.10 Wide vs. compact split buttons (CC / 3B)
 
 **Purpose:** BTN and SB, in certain 1-open-remaining scenarios (`canColdCall(pos, opener)`), can either **call** (cold-call) or **3-bet** the opener — this is the one place the app needs a single seat to represent two distinct actions. A toggle (`#wide-split-toggle`, persisted as `rn_wide_split` in localStorage) switches between two visual treatments:
-- **Compact (default off... actually persisted; check current default):** one circular button split into two halves (`split-pos-wrap` / `split-half`), CC on the left, 3B on the right.
-- **Wide:** three separate full circles — a dashed, non-interactive center circle showing the position label, flanked by a CALL circle and a 3B circle, symmetric around the seat's normal position (`split-wide-*` classes). Added because the compact split-half buttons were reportedly hard to tap precisely on iPad.
+- **Since 2026-10-18 both modes use one capsule** (`.split-capsule`): a "Call" half (light green, `.split-cc`) on the left and a "3B" half (red, `.split-3b`) on the right, in medium weight with no position name, per the user's request for a clean look. The toggle only sets the size: compact by default, and `.wide` gives 130px halves. Size comes from the `--half` / `--cap-h` variables, which the 820px and 430px breakpoints shrink. The old wide mode (three separate circles) was replaced because the capsule is just as easy to tap.
 
 **Important files:** `renderTable`'s `useSplit` branch (~2988–3054), `canColdCall`, the `.split-*` CSS block.
 
@@ -521,6 +520,23 @@ These were real bugs found and fixed in prior sessions on this exact codebase. T
    separate typed fields. `navigator-metadata.js` builds the trail from history
    for completed actions and from `decision.primaryAction` for the final actor.
    Do not reconstruct schema-v2 sizes from filenames.
+6. **Legacy "facing" chart sizes shown on the wrong step** (2026-10-18). In
+   `BTN-SB_3B-10bb.png` the 10bb is SB's 3-bet, but the action chips showed
+   `BTN 4B 10bb`, and the breadcrumb applied the active tab's size to every step.
+   **Fix:** `legacyStepSizes()` maps a legacy chart's size to the step it describes.
+   An "own action" chart (last step is a new actor) sizes the last step. A "facing"
+   chart (last step re-enters the path) sizes the step before the hero, and the
+   hero gets no size. Both `renderActionPath` and `renderBreadcrumb` use it for
+   legacy packs only.
+
+Chart popup restyle (2026-10-18, from the user's mockup):
+- The title is `formatTitleText()` + `renderModalTitle()`, e.g. "BTN vs SB · 3-Bet" followed by the size in grey (`.title-size`).
+- The action trail is a single rounded pill: coloured position names, › separators, and the step that carries a size (`.ap-group.has-size`) in bold white.
+- Size tabs are 52px rounded rectangles, with a blue fill and ring for the selected one.
+
+The size/variant tabs now sit **above** the chart (between the header and the
+zoom area). While they show, `#chart-modal.has-tabs` reduces `#zoom-wrapper`'s
+padding-top from 70px to 34px, which keeps room for the % bar 26px above the image.
 
 ---
 
