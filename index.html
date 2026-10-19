@@ -917,6 +917,48 @@
 
   #modal-filename { margin-top: 12px; font-size: 12px; color: rgba(255,255,255,0.35); }
 
+  /* IP 3-bet step with ▾: tap to switch the whole line to another 3-bet size */
+  #chart-modal header.modal-head { z-index: 5; }   /* menu overlays the tabs/chart */
+  .ap-group.switchable {
+    position: relative;
+    cursor: pointer;
+    padding: 3px 9px;
+    margin: -3px -9px;
+    border-radius: 9px;
+    background: rgba(255,255,255,0.08);
+  }
+  .ap-caret { font-size: 11px; color: rgba(255,255,255,0.6); }
+  .ap-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 140px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-radius: 14px;
+    background: #17191f;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    z-index: 60;
+  }
+  .ap-menu-item {
+    height: 44px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+  }
+  .ap-menu-item.on { background: rgba(56,110,210,0.3); font-weight: 600; }
+  .ap-menu-item.on::after { content: "✓"; float: right; color: #7fb0ff; }
+
   #close-modal {
     position: absolute;
     top: 16px;
@@ -1321,6 +1363,18 @@
   }
   .split-capsule.wide { --half: 130px; --cap-h: 104px; }
 
+  /* Hold-to-pick 3-bet sizes: one red segment per size (after a green Call if allowed) */
+  .split-capsule.sizes { --seg: 64px; width: auto; }
+  .split-capsule.sizes.wide { --seg: 80px; }
+  .split-capsule.sizes .split-half { flex: none; width: var(--seg); }
+  .split-capsule.sizes .split-3b + .split-3b { border-left: 1px solid rgba(0,0,0,0.35); }
+
+  /* While a seat is being held: a soft ring grows until the sizes open */
+  .position-btn.holding, .split-half.holding {
+    box-shadow: 0 0 0 7px rgba(255,255,255,0.22), 0 6px 14px rgba(0,0,0,0.55);
+    transition: box-shadow 1s linear;
+  }
+
   .split-half {
     flex: 1;
     display: flex;
@@ -1563,6 +1617,8 @@
     .variant-tabs::before, .variant-tabs::after { content: ""; margin: auto; }
     .variant-tabs .variant-compare-btn { position: static; transform: none; height: 52px; }
     .split-capsule      { --half: 56px; --cap-h: 74px; }
+    .split-capsule.sizes { --seg: 50px; }
+    .split-capsule.sizes.wide { --seg: 60px; }
     .split-capsule.wide { --half: 92px; --cap-h: 82px; }
     .split-half { font-size: 15px; }
     .split-capsule.wide .split-half { font-size: 17px; }
@@ -1615,6 +1671,7 @@
     #chart-modal h2 { font-size: 20px; }
     .ap-group { font-size: 14px; }
     .split-capsule      { --half: 42px; --cap-h: 58px; }
+    .split-capsule.sizes, .split-capsule.sizes.wide { --seg: 40px; }
     .split-capsule.wide { --half: 60px; --cap-h: 62px; }
     .split-half, .split-capsule.wide .split-half { font-size: 13px; }
   }
@@ -1655,7 +1712,7 @@
       <div class="pack-picker-wrap">
         <select id="pack-picker"></select>
       </div>
-      <button id="rng-settings-btn" aria-label="RNG settings">⚙</button>
+      <button id="rng-settings-btn" aria-label="Settings">⚙</button>
       <button id="help-btn" aria-label="Help & Documentation">?</button>
     </div>
   </header>
@@ -1681,7 +1738,7 @@
 
 <div id="overview-menu" class="hidden"></div>
 
-<div id="rng-panel" class="hidden" role="dialog" aria-label="RNG settings">
+<div id="rng-panel" class="hidden" role="dialog" aria-label="Settings">
   <div class="rng-panel-title">RNG</div>
   <label class="setting-toggle">
     <span>Show RNG</span>
@@ -1702,6 +1759,11 @@
       <button data-interval="3">3s</button>
     </div>
   </div>
+  <div class="rng-panel-title" style="margin-top: 10px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.08)">3-BET SIZES</div>
+  <label class="setting-toggle">
+    <span>Hold a seat to pick a size</span>
+    <input type="checkbox" id="hold-size-toggle">
+  </label>
 </div>
 
 <!-- Overview Manager modal -->
@@ -1858,6 +1920,8 @@
 
         <p><strong>Show Sequence Toggle</strong> — Display the next action in the sequence alongside your current range. Helpful for understanding flow.</p>
 
+        <p><strong>3-Bet Sizes (6max 2.2bb)</strong> — In-position 3-bets come in several sizes. After an open, hold a seat for a second to pick the size (or switch this off in ⚙ Settings and use the size tabs on the 3-bet chart). The rest of the hand then follows that size: tap the 3-bettor's step marked ▾ in a chart's header to switch to another size.</p>
+
         <p><strong>Overview Manager (⋯ button)</strong> — Tap the three-dot menu on any position to:</p>
         <ul>
           <li>Add custom overview charts (e.g., combined RFI ranges for a position)</li>
@@ -1939,6 +2003,11 @@ const state = {
   // Metadata node selected for each visible tap path. This lets a later tap
   // continue down the exact sized branch, even when intervening players fold.
   metadataSelections: {},
+  // Size branch chosen for the current IP 3-bet line: null = not chosen yet,
+  // "base" = the pack's own charts, or a sizeBranches folder (see "Size branches").
+  branch:             null,
+  // Seat currently showing the hold-to-pick 3-bet size capsule
+  sizePickerPos:      null,
 };
 
 // Default ON — user can toggle off
@@ -1950,6 +2019,46 @@ let showVariantCompare  = false;
 
 // Wide CC/3B buttons — the CALL/3-BET capsule uses its large (130px per half) size
 let wideActionButtons = false;
+
+// Hold-to-pick 3-bet size (⚙ setting, persisted as rn_hold_size_picker, default on).
+// Off = taps work exactly as before; sizes stay reachable through the chart's tabs.
+let holdSizePicker = true;
+const HOLD_MS = 1000;
+let holdFired = false;     // a hold just opened the picker…
+let swallowClickUntil = 0; // …so the click from lifting that finger must be ignored
+
+function attachHoldToPick(el, pos) {
+  let timer = null;
+  const cancel = () => {
+    if (timer) { clearTimeout(timer); timer = null; }
+    el.classList.remove("holding");
+  };
+  el.addEventListener("pointerdown", e => {
+    if (e.button > 0) return;
+    el.classList.add("holding");
+    timer = setTimeout(() => {
+      timer = null;
+      holdFired = true;
+      state.sizePickerPos = pos;
+      renderTable();
+    }, HOLD_MS);
+  });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(t => el.addEventListener(t, cancel));
+  el.addEventListener("contextmenu", e => e.preventDefault());   // Android long-press menu
+}
+
+// The seat is replaced by the capsule while the finger is still down; whatever the
+// lift lands on must not count as a tap (it could be a size segment or the felt).
+document.addEventListener("pointerup", () => {
+  if (holdFired) { holdFired = false; swallowClickUntil = Date.now() + 500; }
+}, true);
+document.addEventListener("click", e => {
+  if (Date.now() < swallowClickUntil) {
+    swallowClickUntil = 0;
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}, true);
 
 const POSITIONS = {
   sixMax:  ["UTG", "MP", "CO", "BTN", "SB", "BB"],
@@ -1996,6 +2105,84 @@ function metadataNodesForPath(path, pack = getCurrentPack()) {
     break;
   }
   return records;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Size branches — extra IP 3-bet sizes from separate sims
+// ═══════════════════════════════════════════════════════════════
+// A legacy pack can list `sizeBranches` in data.js: schema-v2 exports of other sims
+// (exporter filter "IP 3-bet lines only"), each adding one more IP 3-bet size.
+//   • On the IP 3-bet chart itself — path [opener, IP player] — the pack's own chart
+//     and every branch's chart show together as size tabs.
+//   • Once a size is chosen (tab, hold-to-pick capsule, or the trail's ▾ menu) every
+//     later node in that hand shows ONLY that branch's charts, e.g. BTN's C4B range
+//     vs MP's 6.5bb 3-bet, never the 7bb tree's.
+// "IP 3-bet line" = the second actor raised (no _CC), isn't a blind, and the opener
+// isn't SB (BvB). This mirrors the exporter's in_ip_3bet_line().
+function isIp3betLine(path) {
+  return path.length >= 2 && pathPos(path[0]) !== "SB" &&
+         !pathIsCC(path[1]) && !["SB", "BB"].includes(pathPos(path[1]));
+}
+
+function getBranchFolders(pack = getCurrentPack()) {
+  const packs = getMetadataRoot()?.packs || {};
+  return (pack?.sizeBranches || []).filter(f => packs[f]?.schemaVersion === 2);
+}
+
+function branchRecords(folder, path) {
+  const metadata = getMetadataRoot()?.packs?.[folder];
+  return metadata ? metadataNodesForPath(path, { imageFolder: folder, metadata }) : [];
+}
+
+function branchCharts(folder, path) {
+  return window.RANGE_NAVIGATOR_CORE.makeCharts(folder, branchRecords(folder, path))
+    .map(c => ({ ...c, branch: folder }));
+}
+
+const sizeNumber = label => parseFloat(String(label || "").replace(/[^\d.]/g, "")) || 0;
+
+// Every size available on the IP 3-bet chart [opener, ip]: the pack's own chart(s)
+// tagged "base", then each branch's, sorted by size.
+function ip3betSizeCharts(path2) {
+  const pack = getCurrentPack();
+  const base = getChartsForNodeBase({ path: path2, imageFolder: pathPos(path2[1]) })
+    .filter(c => !c.missing)
+    .map(c => ({ ...c, branch: "base",
+                 label: c.label && c.label !== "Base" ? c.label : (pack?.baseSizeLabel || c.label) }));
+  const all = [...base, ...getBranchFolders(pack).flatMap(f => branchCharts(f, path2))];
+  return all.sort((a, b) => sizeNumber(a.label) - sizeNumber(b.label));
+}
+
+// The branch the current hand follows. Not chosen yet → the starred default size for
+// that IP 3-bet spot (if it belongs to a branch), else the pack's own charts.
+function resolvedBranch(path) {
+  if (!isIp3betLine(path) || getBranchFolders().length === 0) return null;
+  if (state.branch) return state.branch;
+  const preferred = getDefaultSizeLabel(getSizeKey(path.slice(0, 2)));
+  const hit = preferred && ip3betSizeCharts(path.slice(0, 2)).find(c => c.label === preferred);
+  return hit ? hit.branch : "base";
+}
+
+// Branch folder whose charts replace the pack's own for this path (deeper than the
+// IP 3-bet chart), or null to use the pack's own charts.
+function activeBranch(path) {
+  const b = resolvedBranch(path);
+  return b && b !== "base" ? b : null;
+}
+
+function branchNode(folder, path) {
+  const records = branchRecords(folder, path);
+  if (!records.length) return null;
+  return { path: [...path], imageFolder: records[0].hero,
+           title: records[0].title || `${records[0].hero} decision` };
+}
+
+// Size label of the chosen branch on the IP 3-bet chart (shown on the 3-bettor's seat)
+function branchSizeLabel(path) {
+  const b = resolvedBranch(path);
+  if (!b) return null;
+  const c = ip3betSizeCharts(path.slice(0, 2)).find(x => x.branch === b);
+  return c?.label || null;
 }
 
 // ── Per-node "default situation" (C4B vs Squeeze) ─────────────────
@@ -2053,6 +2240,12 @@ function getSizeKey(path) {
 function getPreferredVariantIndex(node) {
   if (!node) return 0;
   const charts = getChartsForNode(node);
+  // IP 3-bet chart: open on the size branch this hand already follows
+  const nodePath = node.path || [];
+  if (nodePath.length === 2 && state.branch && isIp3betLine(nodePath)) {
+    const i = charts.findIndex(c => c.branch === state.branch);
+    if (i >= 0) return i;
+  }
   const selectedId = state.metadataSelections[metadataSelectionKey(node.path || [])];
   if (selectedId !== undefined) {
     const selectedIndex = charts.findIndex(chart => chart.nodeId === selectedId);
@@ -2092,6 +2285,8 @@ function getEffectivePacks() {
     ...pack,
     metadata: metadataPacks[pack.imageFolder] || null,
   }));
+  // Size-branch folders belong to their pack; never list them as packs of their own
+  const branchFolders = new Set(basePacks.flatMap(p => p.sizeBranches || []));
 
   // All unique top-level folders in the manifest
   const folders = [...new Set([
@@ -2106,7 +2301,7 @@ function getEffectivePacks() {
 
   // Auto-generate a pack for any folder not yet listed
   const autoPacks = folders
-    .filter(f => !coveredFolders.has(f))
+    .filter(f => !coveredFolders.has(f) && !branchFolders.has(f))
     .map(folder => {
       const metadata = metadataPacks[folder] || null;
       const isHU   = metadata ? metadata.format === "headsUp" : /\bhu\b/i.test(folder);
@@ -2245,10 +2440,21 @@ function findNode(path) {
       metadataRecords: records,
     };
   }
-  return pack.nodes.find(n =>
+  // On a chosen size branch, nodes past the IP 3-bet chart come from that branch only
+  const folder = path.length > 2 ? activeBranch(path) : null;
+  if (folder) return branchNode(folder, path);
+
+  const legacy = pack.nodes.find(n =>
     n.path.length === path.length &&
     n.path.every((p, i) => p === path[i])
   ) || null;
+  if (legacy || path.length !== 2 || !isIp3betLine(path)) return legacy;
+  // IP 3-bet chart that only a branch has
+  for (const f of getBranchFolders(pack)) {
+    const node = branchNode(f, path);
+    if (node) return node;
+  }
+  return null;
 }
 
 // Open the chart modal for a given path.
@@ -2257,6 +2463,9 @@ function findNode(path) {
 // Caller_CC-Opener naming branch.
 function openChartForPath(path) {
   let node = findNode(path);
+  // On a size branch, a node the branch doesn't have must not fall back to the
+  // pack's own (different-size) synthetic charts below
+  if (!node && path.length > 2 && activeBranch(path)) return false;
 
   // Synthetic node: 2-step CC path (e.g. ["UTG","BTN_CC"]) — no data.js entry needed
   if (!node && path.length === 2 && pathIsCC(path[path.length - 1])) {
@@ -2339,7 +2548,23 @@ function getOverviewsForPosition(pos) {
 //
 //  OLD naming still works as a fallback (imageBase + _variant suffix).
 
+// Size branches first (see "Size branches"): the IP 3-bet chart merges every size;
+// deeper nodes use the chosen branch's charts only; everything else is unchanged.
 function getChartsForNode(node) {
+  const path = node.path || [];
+  if (isIp3betLine(path) && getBranchFolders().length) {
+    if (path.length === 2) {
+      const merged = ip3betSizeCharts(path);
+      if (merged.length) return merged;
+    } else {
+      const folder = activeBranch(path);
+      if (folder) return branchCharts(folder, path);
+    }
+  }
+  return getChartsForNodeBase(node);
+}
+
+function getChartsForNodeBase(node) {
   const pack     = getCurrentPack();
   const manifest = window.IMAGE_MANIFEST || [];
   if (!pack) return [];
@@ -2595,6 +2820,7 @@ function getOldStyleCharts(node, pack, manifest) {
 // action: null/"3B" = normal 3-bet step, "CC" = cold-call step (appends "_CC")
 function handlePositionTap(pos, action) {
   closeOverviewMenu();
+  state.sizePickerPos = null;
   if (rng.show && rng.mode === "action") rollRng();
   const now      = Date.now();
   const isDouble = (pos === lastTap.pos) && (now - lastTap.time < DOUBLE_TAP_MS);
@@ -3108,6 +3334,9 @@ function renderOverviewManager() {
 // Render
 // ═══════════════════════════════════════════════════════════════
 function render() {
+  // A size branch only lives as long as the IP 3-bet line it was chosen for
+  if (!isIp3betLine(state.currentPath)) state.branch = null;
+  if (state.currentPath.length !== 1) state.sizePickerPos = null;
   renderFormatPicker();
   renderPackPicker();
   renderTable();
@@ -3162,7 +3391,38 @@ function renderTable() {
     const opener = state.currentPath.length === 1 ? pathPos(state.currentPath[0]) : null;
     const useSplit = opener && canColdCall(pos, opener) && stepIndex === -1;
 
-    if (useSplit) {
+    // Hold-to-pick: after an open, an IP seat with 2+ 3-bet sizes can be held to
+    // expand into one segment per size (plus Call where cold-calling is allowed)
+    const pickSizes = (holdSizePicker && opener && stepIndex === -1 &&
+                       isIp3betLine([state.currentPath[0], pos]))
+      ? ip3betSizeCharts([state.currentPath[0], pos]) : [];
+    const canPick = pickSizes.length > 1;
+
+    if (canPick && state.sizePickerPos === pos) {
+      const wrap = document.createElement("div");
+      wrap.className = "split-capsule sizes" + (wideActionButtons ? " wide" : "");
+      wrap.dataset.pos = pos;
+      wrap.style.setProperty("--x", bx + "%");
+      wrap.style.setProperty("--y", by + "%");
+      const addSeg = (cls, label, aria, onPick) => {
+        const seg = document.createElement("button");
+        seg.className   = `split-half ${cls}`;
+        seg.textContent = label;
+        seg.setAttribute("aria-label", aria);
+        seg.addEventListener("click", e => { e.stopPropagation(); onPick(); });
+        wrap.appendChild(seg);
+      };
+      if (useSplit) addSeg("split-cc", "Call", `${pos} call`, () => handlePositionTap(pos, "CC"));
+      pickSizes.forEach(c => {
+        const label = String(c.label || "").replace(/bb$/i, "");
+        addSeg("split-3b", label, `${pos} 3-bet to ${c.label}`, () => {
+          state.branch = c.branch;
+          handlePositionTap(pos, useSplit ? "3B" : undefined);
+        });
+      });
+      table.appendChild(wrap);
+
+    } else if (useSplit) {
       // ── Split seat: one capsule, CALL (left) | 3-BET (right) ─────
       // "Wide CC / 3B buttons" only changes the capsule's size (.wide).
       const wrap = document.createElement("div");
@@ -3181,6 +3441,7 @@ function renderTable() {
       };
       makeHalf("split-cc", "Call", "CC");
       makeHalf("split-3b", "3B",   "3B");
+      if (canPick) attachHoldToPick(wrap.querySelector(".split-3b"), pos);
       table.appendChild(wrap);
 
     } else {
@@ -3203,11 +3464,15 @@ function renderTable() {
       if (stepIndex !== -1) {
         const step = document.createElement("span");
         step.className = "step";
-        step.textContent = "#" + (stepIndex + 1) + (stepIsCC ? " CC" : "");
+        // The IP 3-bettor shows the 3-bet size the hand follows (packs with size branches)
+        const branchSize = stepIndex === 1 && isIp3betLine(state.currentPath) && getBranchFolders().length
+          ? branchSizeLabel(state.currentPath) : null;
+        step.textContent = branchSize || ("#" + (stepIndex + 1) + (stepIsCC ? " CC" : ""));
         btn.appendChild(step);
       }
 
       btn.addEventListener("click", e => { e.stopPropagation(); handlePositionTap(pos); });
+      if (canPick) attachHoldToPick(btn, pos);
       table.appendChild(btn);
     }
 
@@ -3304,6 +3569,10 @@ function legacyStepSizes(path, activeLabel) {
     if (prefix.length === path.length && activeLabel !== undefined) {
       return activeLabel && activeLabel !== "Base" ? activeLabel : null;
     }
+    // The IP 3-bet step of a pack with size branches: the size this hand follows
+    if (prefix.length === 2 && isIp3betLine(prefix) && getBranchFolders().length) {
+      return branchSizeLabel(prefix);
+    }
     const saved = getDefaultSizeLabel(getSizeKey(prefix));
     if (saved) return saved;
     const node  = findNode(prefix) || { path: prefix, imageFolder: pathPos(prefix[prefix.length - 1]) };
@@ -3333,6 +3602,7 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
     ? window.RANGE_NAVIGATOR_CORE.actionTrail(metadataRecord, path)
     : null;
   const legacySizes = metadataRecord ? null : legacyStepSizes(path, activeVariantLabel || null);
+  const sizeOptions = lineSizeOptions(path);
 
   const verbFor = (p, i) => {
     const lbl = getStepActionLabel(p, i);
@@ -3395,8 +3665,59 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
       group.appendChild(sizeEl);
     }
 
+    // The IP 3-bet step of a deeper line: ▾ switches the whole line to another size
+    if (i === 1 && sizeOptions.length > 1) {
+      group.classList.add("switchable");
+      const caret = document.createElement("span");
+      caret.className   = "ap-caret";
+      caret.textContent = "▾";
+      group.appendChild(caret);
+      group.setAttribute("role", "button");
+      group.setAttribute("aria-label", "Change 3-bet size");
+      group.addEventListener("click", e => {
+        e.stopPropagation();
+        toggleSizeMenu(group, path, sizeOptions);
+      });
+    }
+
     el.appendChild(group);
   });
+}
+
+// Sizes the current deeper line exists in: the pack's own charts ("base") and each
+// branch that has a chart for this exact path.
+function lineSizeOptions(path) {
+  if (path.length <= 2 || !isIp3betLine(path) || getBranchFolders().length === 0) return [];
+  const current = resolvedBranch(path);
+  return ip3betSizeCharts(path.slice(0, 2))
+    .filter(c => c.branch === "base"
+      ? getChartsForNodeBase({ path, imageFolder: pathPos(path[path.length - 1]) }).some(x => !x.missing)
+      : branchRecords(c.branch, path).length > 0)
+    .map(c => ({ label: c.label, branch: c.branch, on: c.branch === current }));
+}
+
+function toggleSizeMenu(group, path, options) {
+  const open = group.querySelector(".ap-menu");
+  if (open) { open.remove(); return; }
+  const menu = document.createElement("div");
+  menu.className = "ap-menu";
+  menu.setAttribute("role", "menu");
+  options.forEach(opt => {
+    const item = document.createElement("button");
+    item.className = "ap-menu-item" + (opt.on ? " on" : "");
+    item.setAttribute("role", "menuitemradio");
+    item.setAttribute("aria-checked", String(opt.on));
+    item.textContent = opt.label;
+    item.addEventListener("click", e => {
+      e.stopPropagation();
+      if (opt.on) { menu.remove(); return; }
+      state.branch = opt.branch;
+      render();
+      openChartForPath(path);
+    });
+    menu.appendChild(item);
+  });
+  group.appendChild(menu);
 }
 
 function renderBreadcrumb() {
@@ -3421,6 +3742,18 @@ function renderBreadcrumb() {
       activeLabel = (charts[state.activeVariantIndex] || charts[0])?.label || null;
     }
     legacySizes = legacyStepSizes(state.currentPath, activeLabel);
+
+    // On a size branch, exact sizes come from that branch's metadata
+    const branch = activeBranch(state.currentPath);
+    if (branch) {
+      const shown = activeLabel !== undefined
+        ? (getChartsForNode(state.activeNode)[state.activeVariantIndex] || null)
+        : (branchCharts(branch, state.currentPath)[0] || null);
+      const record = shown?.metadata;
+      if (record) {
+        legacySizes = window.RANGE_NAVIGATOR_CORE.actionTrail(record, state.currentPath).map(t => t.sizeLabel);
+      }
+    }
   }
 
   for (let i = 1; i <= state.currentPath.length; i++) {
@@ -3631,6 +3964,11 @@ function renderModal() {
   // Formatted title and filename — shown in modal header
   if (chart?.metadata) {
     state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = chart.metadata.nodeId;
+  }
+  // The size shown on an IP 3-bet chart becomes the size the rest of the hand follows
+  const activePath = state.activeNode.path || [];
+  if (chart?.branch && activePath.length === 2 && isIp3betLine(activePath)) {
+    state.branch = chart.branch;
   }
   const activeTitle = chart?.metadata?.title || state.activeNode.title;
   renderModalTitle(activeTitle, variantLabel);
@@ -4209,10 +4547,18 @@ function init() {
 
   // Load persisted toggle states
   try { wideActionButtons = localStorage.getItem("rn_wide_split") === "true"; } catch {}
+  try { holdSizePicker = localStorage.getItem("rn_hold_size_picker") !== "false"; } catch {}
 
   // Sync toggles to current state
   document.getElementById("auto-reset-toggle").checked = autoResetOnFeltTap;
   document.getElementById("wide-split-toggle").checked = wideActionButtons;
+  document.getElementById("hold-size-toggle").checked  = holdSizePicker;
+  document.getElementById("hold-size-toggle").addEventListener("change", e => {
+    holdSizePicker = e.target.checked;
+    try { localStorage.setItem("rn_hold_size_picker", holdSizePicker); } catch {}
+    state.sizePickerPos = null;
+    renderTable();
+  });
 
   document.querySelectorAll("#format-picker button").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -4240,6 +4586,8 @@ function init() {
   // re-render, so the second physical tap can land on empty felt instead of a button.
   document.getElementById("table").addEventListener("click", () => {
     if (rng.show && (rng.mode === "felt" || rng.mode === "action")) rollRng();
+    // A felt tap with the size picker open just closes it
+    if (state.sizePickerPos) { state.sizePickerPos = null; renderTable(); return; }
     const now = Date.now();
     if (lastTap.pos && (now - lastTap.time < DOUBLE_TAP_MS)) {
       const lastStep = state.currentPath[state.currentPath.length - 1];

@@ -129,6 +129,15 @@ const PACKS = [
     format:      "sixMax",
     imageFolder: "6max_22",
 
+    // ── Extra IP 3-bet sizes ("size branches")
+    //    Each folder is a separate HRC sim exported with the HRC Screenshot Exporter's
+    //    "IP 3-bet lines only" filter. On an IP 3-bet chart every size shows as a tab,
+    //    and the rest of the hand follows the size you pick. These folders are hidden
+    //    from the pack picker. baseSizeLabel = this pack's own IP 3-bet size, used when
+    //    a chart's filename has no size (e.g. CO_3B-UTG.png).
+    baseSizeLabel: "7bb",
+    sizeBranches: ["6max_22_3b6.5", "6max_22_3b8", "6max_22_3b9"],
+
     // ── Double-tap defaults: overview opened when a position is double-tapped
     //    with nothing else in the path. Can be overridden per-pack in the app.
     defaultOverviews: {

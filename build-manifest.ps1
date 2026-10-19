@@ -61,7 +61,8 @@ $metadataPacks = [ordered]@{}
 $packFiles = Get-ChildItem -Path (Join-Path $imagesDir "*\pack.json") -File -ErrorAction SilentlyContinue
 foreach ($packFile in $packFiles) {
     try {
-        $pack = Get-Content -LiteralPath $packFile.FullName -Raw | ConvertFrom-Json
+        # -Encoding UTF8: without it PowerShell 5.1 reads "·" as "Â·"
+        $pack = Get-Content -LiteralPath $packFile.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($pack.schemaVersion -eq 2) {
             $metadataPacks[$packFile.Directory.Name] = $pack
         }
@@ -75,7 +76,8 @@ $metadataRoot = [ordered]@{
     schemaVersion = 2
     packs = $metadataPacks
 }
-$metadataJson = $metadataRoot | ConvertTo-Json -Depth 100
+# -Compress: the iPad loads this whole file on every launch, so keep it small
+$metadataJson = $metadataRoot | ConvertTo-Json -Depth 100 -Compress
 $metadataOutput = @"
 /* AUTO-GENERATED from images/<pack>/pack.json. Do not edit by hand. */
 window.RANGE_NAVIGATOR_METADATA = $metadataJson;
