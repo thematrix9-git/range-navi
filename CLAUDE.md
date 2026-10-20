@@ -344,6 +344,10 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
 
 **Hold-to-pick:** holding an eligible seat for `HOLD_MS` (1s) after an open replaces it with a capsule. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
 
+**Legacy 2.2bb source sim:** `images/6max_22` was generated from `HRC Pio Converter\6max 2.2x 2025 HRC 7bb NL500.zip`. This was confirmed by re-rendering a chart and matching it exactly; the "6max 2.2-7 CC GG…" exports are a different sim. On 2026-10-20 the 28 "facing a cold 4-bet" charts it lacked (`A-B-C_C4B`, `B-A-C_C4B`) were rendered from that sim with the exporter's `render_node_png` + `LEGACY_IOS` profile. Six of those lines had been falling back to the `_Squeeze` chart from the squeeze pot.
+
+**Trail size menu:** the trail step that the chart's size tabs describe shows sizes in red with a ▾. On a legacy "facing" chart that's the bet being faced; otherwise it's the last step. Tapping it lists the tabs (`variantMenu` → `toggleSizeMenu`, `selectVariant`). On deeper IP 3-bet lines, step 1's ▾ is the size-branch menu instead. Titles abbreviate to "3B/4B/5B" (`formatTitleText`).
+
 **Metadata size:** both the exporter and `build-manifest.ps1` now write `library-metadata.js` compact, which takes it from about 7.8MB to 1.1MB. `build-manifest.ps1` also now reads `pack.json` as UTF-8; it used to turn "·" into "Â·" in titles.
 
 ---

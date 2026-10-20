@@ -902,10 +902,10 @@
   }
   .ap-group.has-size .ap-verb { color: rgba(255,255,255,0.95); font-weight: 700; }
 
-  /* Bet size — bold, white, the thing you actually read */
+  /* Bet size — bold red so it stands out; the thing you actually read */
   .ap-size {
     font-weight: 800;
-    color: #fff;
+    color: #ff5c5c;
   }
 
   /* Chevron separator */
@@ -3593,7 +3593,7 @@ function legacyStepSizes(path, activeLabel) {
   });
 }
 
-function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
+function renderActionPath(path, activeVariantLabel, metadataRecord = null, variantMenu = null) {
   const el = document.getElementById("modal-action-path");
   if (!el) return;
   el.innerHTML = "";
@@ -3665,18 +3665,21 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null) {
       group.appendChild(sizeEl);
     }
 
-    // The IP 3-bet step of a deeper line: ▾ switches the whole line to another size
-    if (i === 1 && sizeOptions.length > 1) {
+    // ▾ size menu: the IP 3-bet step of a deeper line switches the whole line to
+    // another size branch; otherwise the step the chart's size tabs describe lists them
+    const menuOptions = (i === 1 && sizeOptions.length > 1) ? sizeOptions
+                      : (variantMenu && i === variantMenu.step) ? variantMenu.options : null;
+    if (menuOptions) {
       group.classList.add("switchable");
       const caret = document.createElement("span");
       caret.className   = "ap-caret";
       caret.textContent = "▾";
       group.appendChild(caret);
       group.setAttribute("role", "button");
-      group.setAttribute("aria-label", "Change 3-bet size");
+      group.setAttribute("aria-label", "Change size");
       group.addEventListener("click", e => {
         e.stopPropagation();
-        toggleSizeMenu(group, path, sizeOptions);
+        toggleSizeMenu(group, menuOptions);
       });
     }
 
@@ -3693,10 +3696,14 @@ function lineSizeOptions(path) {
     .filter(c => c.branch === "base"
       ? getChartsForNodeBase({ path, imageFolder: pathPos(path[path.length - 1]) }).some(x => !x.missing)
       : branchRecords(c.branch, path).length > 0)
-    .map(c => ({ label: c.label, branch: c.branch, on: c.branch === current }));
+    .map(c => ({
+      label: c.label, on: c.branch === current,
+      pick: () => { state.branch = c.branch; render(); openChartForPath(path); },
+    }));
 }
 
-function toggleSizeMenu(group, path, options) {
+// options: [{ label, on, pick }]
+function toggleSizeMenu(group, options) {
   const open = group.querySelector(".ap-menu");
   if (open) { open.remove(); return; }
   const menu = document.createElement("div");
@@ -3711,9 +3718,7 @@ function toggleSizeMenu(group, path, options) {
     item.addEventListener("click", e => {
       e.stopPropagation();
       if (opt.on) { menu.remove(); return; }
-      state.branch = opt.branch;
-      render();
-      openChartForPath(path);
+      opt.pick();
     });
     menu.appendChild(item);
   });
@@ -3860,14 +3865,14 @@ function getNextNode() {
 
 // ─── Title formatting ─────────────────────────────────────────────
 // Applies display-friendly renaming rules without touching data.js:
-//   "X vs Y open"  → "X 3-Bet vs Y"
-//   "X vs Y 3bet"  → "X vs Y · 3-Bet"   (also "3-bet", and 4/5-bet)
-//   "cold 4bet"    → "cold 4-Bet"
+//   "X vs Y open"  → "X 3B vs Y"
+//   "X vs Y 3bet"  → "X vs Y · 3B"   (also "3-bet", and 4/5-bet)
+//   "cold 4bet"    → "cold 4B"
 function formatTitleText(title) {
   let t = title || '';
-  t = t.replace(/^(.+?) vs (.+?) open$/i, '$1 3-Bet vs $2');
-  t = t.replace(/\b(\d)-?bet\b/gi, (_, n) => `${n}-Bet`);
-  t = t.replace(/^(\S+ vs \S+) (\d-Bet)$/, '$1 · $2');
+  t = t.replace(/^(.+?) vs (.+?) open$/i, '$1 3B vs $2');
+  t = t.replace(/\b(\d)-?bet\b/gi, (_, n) => `${n}B`);
+  t = t.replace(/^(\S+ vs \S+) (\dB)$/, '$1 · $2');
   return t;
 }
 
@@ -3941,6 +3946,18 @@ function renderCompareArea(charts) {
   });
 }
 
+// Show one of the open chart's size/variant tabs (used by the tabs and the trail menu)
+function selectVariant(i) {
+  const c = getChartsForNode(state.activeNode)[i];
+  state.activeVariantIndex = i;
+  if (c?.metadata) {
+    state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = c.metadata.nodeId;
+  }
+  showVariantCompare = false;
+  resetZoom();
+  renderModal();
+}
+
 function renderModal() {
   if (!state.activeNode) return;
 
@@ -3973,7 +3990,22 @@ function renderModal() {
   const activeTitle = chart?.metadata?.title || state.activeNode.title;
   renderModalTitle(activeTitle, variantLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
-  renderActionPath(state.activeNode.path || [], effectiveLabel, chart?.metadata || null);
+  // Size tabs as a menu on the trail step they describe (tap the red size to switch).
+  // A legacy "facing" chart's size belongs to the bet being faced (see legacyStepSizes);
+  // otherwise it's the last step's own size.
+  const navPath = state.activeNode.path || [];
+  const sizeTabs = charts.map((c, i) => ({ label: c.label, index: i }))
+                         .filter(t => /^\d/.test(t.label || ""));
+  let variantMenu = null;
+  if (sizeTabs.length > 1 && navPath.length > 0) {
+    const last = navPath.length - 1;
+    const facing = !chart?.metadata && !getPackMetadata(getCurrentPack()) && isReentryStep(navPath, last);
+    variantMenu = {
+      step: facing ? last - 1 : last,
+      options: sizeTabs.map(t => ({ label: t.label, on: t.index === state.activeVariantIndex, pick: () => selectVariant(t.index) })),
+    };
+  }
+  renderActionPath(navPath, effectiveLabel, chart?.metadata || null, variantMenu);
 
   // ── Variant tabs + optional Split button ──
   const tabs = document.getElementById("variant-tabs");
@@ -3985,13 +4017,7 @@ function renderModal() {
       if (i === state.activeVariantIndex) b.classList.add("active");
       b.addEventListener("click", e => {
         e.stopPropagation();
-        state.activeVariantIndex = i;
-        if (c.metadata) {
-          state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = c.metadata.nodeId;
-        }
-        showVariantCompare = false;
-        resetZoom();
-        renderModal();
+        selectVariant(i);
       });
       tabs.appendChild(b);
     });
