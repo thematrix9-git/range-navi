@@ -360,6 +360,13 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
 - At a facing point, a branch chart's title uses the faced bet ("BTN vs SB · 3B 11bb").
 - `formatBb` rounds to one decimal, so 22.99 → 23bb.
 
+**Chart cell % (2026-10-21):**
+- The exporter's `RenderProfile.cell_value = "call"` prints each hand's call %, or its raise % where the spot has no call. `"continue"` (100% − fold) was the old behaviour.
+- All size-branch folders were re-rendered in this style from their sims.
+- 92 of the 136 charts in `images/6max_22` were re-rendered from `6max 2.2x 2025 HRC 7bb NL500.zip`. The other 44 come from sims not on this machine and keep the old style: the BTN/SB/BB-vs-blinds lines, squeeze/cold-call lines, SB RFI, and the overviews.
+- The old style scales a hand's % by how much of it is in range and draws partial-height bars, so its numbers differ from the new ones on partly-weighted hands even when the sim is the same.
+- `6max_2bb` and `HU Raked` are still in the old style. Re-rendering them needs `.zip` exports of their sims.
+
 **Show RNG** also has a switch in the top-left toggles (`#rng-header-toggle`), kept in sync with the one in ⚙ Settings.
 
 **Hold-to-pick:** holding a seat for `HOLD_MS` (1s) replaces it with a capsule when its next tap would land on a branch point with 2+ options. That covers an IP seat after an open, BTN re-entering after a blind 3-bets, and BB after SB 3-bets. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
