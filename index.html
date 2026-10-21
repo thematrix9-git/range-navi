@@ -990,6 +990,31 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
+  /* Call % | Raise % switch, under the % button (only on charts with a raise-% twin) */
+  #cell-mode {
+    position: absolute;
+    top: 62px;
+    left: 20px;
+    display: flex;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  #cell-mode button {
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #cell-mode button[data-mode="call"].active  { background: rgba(190,225,190,0.18); color: #bee1be; }
+  #cell-mode button[data-mode="raise"].active { background: rgba(255,164,164,0.18); color: #ffa4a4; }
   #freq-btn:hover, #freq-btn.active {
     background: rgba(255,255,255,0.16);
     color: rgba(255,255,255,0.9);
@@ -1128,6 +1153,19 @@
     color: #e6efff;
     border: 1.5px solid #5b8def;
   }
+  /* A second group of tabs that are a different decision (e.g. 4B sizes next to the
+     faced 3B sizes): warm tint + a gap before the group */
+  .variant-tabs button.tab-alt {
+    background: rgba(255,164,164,0.07);
+    border-color: rgba(255,164,164,0.22);
+    color: #f6c9c3;
+  }
+  .variant-tabs button.tab-alt.active {
+    background: rgba(229,139,118,0.30);
+    border: 1.5px solid #e58b76;
+    color: #ffe9e4;
+  }
+  .variant-tabs button.tab-alt-first { margin-left: 14px; }
 
   /* ── Zoom area ────────────────────────────────────────────── */
   #zoom-area {
@@ -1786,6 +1824,10 @@
 <div id="chart-modal" class="hidden">
   <header class="modal-head">
     <button id="freq-btn" aria-label="Set frequencies">%</button>
+    <div id="cell-mode" class="hidden" role="group" aria-label="Hand percentages show">
+      <button data-mode="call">Call %</button>
+      <button data-mode="raise">Raise %</button>
+    </div>
     <div>
       <h2 id="modal-title"></h2>
       <div id="modal-action-path"></div>
@@ -2412,7 +2454,8 @@ function getEffectivePacks() {
 
   // Auto-generate a pack for any folder not yet listed
   const autoPacks = folders
-    .filter(f => !coveredFolders.has(f) && !branchFolders.has(f))
+    // "_raise" (raise-% twins) and other "_" folders are support files, not packs
+    .filter(f => !coveredFolders.has(f) && !branchFolders.has(f) && !f.startsWith("_"))
     .map(folder => {
       const metadata = metadataPacks[folder] || null;
       const isHU   = metadata ? metadata.format === "headsUp" : /\bhu\b/i.test(folder);
@@ -4047,7 +4090,7 @@ function makeSeqPanel(caption, chart) {
     img.onerror  = () => {
       wrap.innerHTML = `<div class="seq-missing"><span>Image not found</span><code>${escHtml(chart.src)}</code></div>`;
     };
-    img.src = chart.src;
+    img.src = displaySrc(chart);
     wrap.appendChild(img);
   } else {
     wrap.innerHTML = `<div class="seq-missing"><span>No chart found</span></div>`;
@@ -4076,6 +4119,31 @@ function renderCompareArea(charts) {
   charts.forEach(chart => {
     area.appendChild(makeSeqPanel(chart.label || formatModalTitle(state.activeNode.title), chart));
   });
+}
+
+// ── Call % / Raise % charts ───────────────────────────────────────
+// Sim-rendered charts show each hand's call % (or raise % where there's no call).
+// Spots with both have a raise-% twin at images/_raise/<same path>; the popup's
+// Call % | Raise % switch picks which one is shown (persisted as rn_cell_mode).
+let cellMode = "call";
+let _raiseTwins = null;
+function raiseTwin(src) {
+  if (!_raiseTwins) {
+    _raiseTwins = new Set((window.IMAGE_MANIFEST || [])
+      .filter(f => f.startsWith("_raise/")).map(f => f.toLowerCase()));
+  }
+  const rel = "_raise/" + String(src || "").replace(/^images\//, "");
+  return _raiseTwins.has(rel.toLowerCase()) ? "images/" + rel : null;
+}
+function displaySrc(chart) {
+  return (cellMode === "raise" && raiseTwin(chart.src)) || chart.src;
+}
+function renderCellModeSwitch(chart) {
+  const el = document.getElementById("cell-mode");
+  const available = !!(chart && raiseTwin(chart.src));
+  el.classList.toggle("hidden", !available);
+  el.querySelectorAll("button").forEach(b =>
+    b.classList.toggle("active", b.dataset.mode === cellMode));
 }
 
 // Show one of the open chart's size/variant tabs (used by the tabs and the trail menu)
@@ -4131,6 +4199,7 @@ function renderModal() {
   }
   renderModalTitle(activeTitle, titleLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
+  renderCellModeSwitch(chart);
 
   // Size tabs as ▾ menus on the trail step they describe (tap the red size to switch).
   // A legacy "facing" chart's size belongs to the bet being faced (see legacyStepSizes);
@@ -4167,6 +4236,12 @@ function renderModal() {
       const b = document.createElement("button");
       b.textContent = c.label || ("Chart " + (i + 1));
       if (i === state.activeVariantIndex) b.classList.add("active");
+      // Mixed row at a facing point: the branch tabs are a different decision (BTN's
+      // 4-bet size) from the pack's tabs (the faced 3-bet size), so tint and space them
+      if (atPoint && isFacingPoint(point) && c.branch && c.branch !== "base") {
+        b.classList.add("tab-alt");
+        if (!charts[i - 1] || charts[i - 1].branch === "base") b.classList.add("tab-alt-first");
+      }
       b.addEventListener("click", e => {
         e.stopPropagation();
         selectVariant(i);
@@ -4285,7 +4360,7 @@ function renderModal() {
       positionFreqBar();
     };
 
-    if (chart) { img.src = chart.src; img.alt = state.activeNode.title; }
+    if (chart) { img.src = displaySrc(chart); img.alt = state.activeNode.title; }
   } // end normal mode
 
   renderFreqBar();
@@ -4733,6 +4808,14 @@ function init() {
   // Load persisted toggle states
   try { wideActionButtons = localStorage.getItem("rn_wide_split") === "true"; } catch {}
   try { holdSizePicker = localStorage.getItem("rn_hold_size_picker") !== "false"; } catch {}
+  try { cellMode = localStorage.getItem("rn_cell_mode") === "raise" ? "raise" : "call"; } catch {}
+  document.querySelectorAll("#cell-mode button").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation();
+    if (cellMode === b.dataset.mode) return;
+    cellMode = b.dataset.mode;
+    try { localStorage.setItem("rn_cell_mode", cellMode); } catch {}
+    renderModal();
+  }));
 
   // Sync toggles to current state
   document.getElementById("auto-reset-toggle").checked = autoResetOnFeltTap;

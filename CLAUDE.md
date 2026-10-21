@@ -367,6 +367,14 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
 - The old style scales a hand's % by how much of it is in range and draws partial-height bars, so its numbers differ from the new ones on partly-weighted hands even when the sim is the same.
 - `6max_2bb` and `HU Raked` are still in the old style. Re-rendering them needs `.zip` exports of their sims.
 
+**Call % / Raise % switch (2026-10-21):**
+- The exporter highlights the header token whose % the cells show (`shown_actions`). `cell_value="raise"` prints raise % (all sizes).
+- Every sim-backed spot with both a call and a raise has a raise-% twin at `images/_raise/<same path>`.
+- In the popup, the `#cell-mode` switch (under the % button, shown only when a twin exists) picks between them via `displaySrc(chart)`, persisted as `rn_cell_mode`. Folders starting with `_` are never packs.
+- Frequency annotations stay keyed to the call-% `chart.src`.
+
+**Tab groups:** at a facing branch point, the branch tabs (e.g. "4B 24bb") get `.tab-alt`, a warm tint with a gap before the group, so they read as a different decision from the faced-3B-size tabs.
+
 **Show RNG** also has a switch in the top-left toggles (`#rng-header-toggle`), kept in sync with the one in ⚙ Settings.
 
 **Hold-to-pick:** holding a seat for `HOLD_MS` (1s) replaces it with a capsule when its next tap would land on a branch point with 2+ options. That covers an IP seat after an open, BTN re-entering after a blind 3-bets, and BB after SB 3-bets. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
@@ -477,6 +485,7 @@ Flat `string[]` of every image path relative to `images/`, forward-slash-separat
 | `rn_wide_split` | `"true"`/`"false"` — wide vs compact CC/3B split button toggle |
 | `rn_rng` | `{ show, mode, interval }` — RNG settings (§6.13) |
 | `rn_hold_size_picker` | `"true"`/`"false"` — hold a seat to pick an IP 3-bet size (§6.14) |
+| `rn_cell_mode` | `"call"`/`"raise"` — which % sim-rendered charts show (§6.14) |
 
 ### Import/export formats
 
