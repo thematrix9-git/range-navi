@@ -1,0 +1,3611 @@
+{
+  "schemaVersion": 2,
+  "displayName": "6max_22_4b25",
+  "format": "sixMax",
+  "players": 6,
+  "solverFormat": "HRC",
+  "positions": [
+    "UTG",
+    "MP",
+    "CO",
+    "BTN",
+    "SB",
+    "BB"
+  ],
+  "smallBlind": 0.5,
+  "bigBlind": 1.0,
+  "ante": 0.0,
+  "stacks": [
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0,
+    100.0
+  ],
+  "nodeFilter": "all",
+  "renderProfile": {
+    "name": "Legacy iOS + frequency header (819 x 659)",
+    "width": 819,
+    "height": 611,
+    "header_height": 48,
+    "header_background": "#171C24",
+    "header_surface": "#202731",
+    "header_text": "#F4F6F8",
+    "neutral": "#D0D0D0",
+    "fold": "#6DA2C0",
+    "call": "#BEE1BE",
+    "raise_colors": [
+      "#FFA4A4",
+      "#E58B76",
+      "#C16D59"
+    ],
+    "grid": "#000000",
+    "text": "#000000",
+    "muted_text": "#666666"
+  },
+  "imageCount": 20,
+  "nodes": [
+    {
+      "nodeId": 0,
+      "file": "UTG/node-000000.png",
+      "hero": "UTG",
+      "title": "UTG RFI",
+      "nodeType": "LIMPED",
+      "navigation": {
+        "path": [
+          "UTG"
+        ],
+        "pathKey": "UTG"
+      },
+      "history": [],
+      "navigationHistory": [],
+      "decision": {
+        "actor": "UTG",
+        "actorSeat": 0,
+        "nodeType": "LIMPED",
+        "potBb": 1.5,
+        "stackBehindBb": 100.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            2.2
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 1,
+            "frequency": 0.7997618401206639,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 2.2,
+            "amountKind": "raiseTo",
+            "toBb": 2.2,
+            "childNodeId": null,
+            "frequency": 0.20023815987933635,
+            "label": "Raise 2.2",
+            "actionKind": "open",
+            "actionLabel": "RFI",
+            "raiseNumber": 1,
+            "cold": false
+          }
+        ]
+      },
+      "parent": null,
+      "parentNodeId": null,
+      "childNodeIds": [
+        1
+      ],
+      "lineageNodeIds": [
+        0
+      ]
+    },
+    {
+      "nodeId": 1,
+      "file": "MP/node-000001.png",
+      "hero": "MP",
+      "title": "MP RFI",
+      "nodeType": "LIMPED",
+      "navigation": {
+        "path": [
+          "MP"
+        ],
+        "pathKey": "MP"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [],
+      "decision": {
+        "actor": "MP",
+        "actorSeat": 1,
+        "nodeType": "LIMPED",
+        "potBb": 1.5,
+        "stackBehindBb": 100.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            2.2
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 2,
+            "frequency": 0.7499650075414782,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 2.2,
+            "amountKind": "raiseTo",
+            "toBb": 2.2,
+            "childNodeId": null,
+            "frequency": 0.2500349924585219,
+            "label": "Raise 2.2",
+            "actionKind": "open",
+            "actionLabel": "RFI",
+            "raiseNumber": 1,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 0,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 0,
+      "childNodeIds": [
+        2
+      ],
+      "lineageNodeIds": [
+        0,
+        1
+      ]
+    },
+    {
+      "nodeId": 2,
+      "file": "CO/node-000002.png",
+      "hero": "CO",
+      "title": "CO RFI",
+      "nodeType": "LIMPED",
+      "navigation": {
+        "path": [
+          "CO"
+        ],
+        "pathKey": "CO"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [],
+      "decision": {
+        "actor": "CO",
+        "actorSeat": 2,
+        "nodeType": "LIMPED",
+        "potBb": 1.5,
+        "stackBehindBb": 100.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            2.2
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 3,
+            "frequency": 0.6837180995475114,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 2.2,
+            "amountKind": "raiseTo",
+            "toBb": 2.2,
+            "childNodeId": null,
+            "frequency": 0.31628190045248866,
+            "label": "Raise 2.2",
+            "actionKind": "open",
+            "actionLabel": "RFI",
+            "raiseNumber": 1,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 1,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 1,
+      "childNodeIds": [
+        3
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "nodeId": 3,
+      "file": "BTN/node-000003.png",
+      "hero": "BTN",
+      "title": "BTN RFI",
+      "nodeType": "LIMPED",
+      "navigation": {
+        "path": [
+          "BTN"
+        ],
+        "pathKey": "BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "LIMPED",
+        "potBb": 1.5,
+        "stackBehindBb": 100.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            2.5
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 4,
+            "frequency": 0.5538165912518853,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 2.5,
+            "amountKind": "raiseTo",
+            "toBb": 2.5,
+            "childNodeId": 5,
+            "frequency": 0.4461834087481147,
+            "label": "Raise 2.5",
+            "actionKind": "open",
+            "actionLabel": "RFI",
+            "raiseNumber": 1,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 2,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 2,
+      "childNodeIds": [
+        4,
+        5
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "nodeId": 4,
+      "file": "SB/node-000004.png",
+      "hero": "SB",
+      "title": "SB RFI",
+      "nodeType": "LIMPED",
+      "navigation": {
+        "path": [
+          "SB"
+        ],
+        "pathKey": "SB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [],
+      "decision": {
+        "actor": "SB",
+        "actorSeat": 4,
+        "nodeType": "LIMPED",
+        "potBb": 1.5,
+        "stackBehindBb": 99.5,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            3.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.5521019607843137,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 3.0,
+            "amountKind": "raiseTo",
+            "toBb": 3.0,
+            "childNodeId": null,
+            "frequency": 0.4478980392156863,
+            "label": "Raise 3",
+            "actionKind": "open",
+            "actionLabel": "RFI",
+            "raiseNumber": 1,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 3,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 3,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "nodeId": 5,
+      "file": "SB/node-000005.png",
+      "hero": "SB",
+      "title": "SB vs BTN open",
+      "nodeType": "SRP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB"
+        ],
+        "pathKey": "BTN|SB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "SB",
+        "actorSeat": 4,
+        "nodeType": "SRP",
+        "potBb": 4.0,
+        "stackBehindBb": 99.5,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            11.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 6,
+            "frequency": 0.8486506787330318,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 11.0,
+            "amountKind": "raiseTo",
+            "toBb": 11.0,
+            "childNodeId": 10,
+            "frequency": 0.15134932126696832,
+            "label": "Raise 11",
+            "actionKind": "threeBet",
+            "actionLabel": "3B",
+            "raiseNumber": 2,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 3,
+        "actionIndex": 1,
+        "rawType": "R",
+        "amountBb": 2.5,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 3,
+      "childNodeIds": [
+        6,
+        10
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ]
+    },
+    {
+      "nodeId": 6,
+      "file": "BB/node-000006.png",
+      "hero": "BB",
+      "title": "BB vs BTN open",
+      "nodeType": "SRP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "BB"
+        ],
+        "pathKey": "BTN|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "SRP",
+        "potBb": 4.0,
+        "stackBehindBb": 99.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            12.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.4434591251885369,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 1.5,
+            "amountKind": "incremental",
+            "toBb": 2.5,
+            "childNodeId": null,
+            "frequency": 0.43200558069381606,
+            "label": "Call 1.5"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 12.0,
+            "amountKind": "raiseTo",
+            "toBb": 12.0,
+            "childNodeId": 7,
+            "frequency": 0.12453499245852184,
+            "label": "Raise 12",
+            "actionKind": "threeBet",
+            "actionLabel": "3B",
+            "raiseNumber": 2,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 5,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 5,
+      "childNodeIds": [
+        7
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6
+      ]
+    },
+    {
+      "nodeId": 7,
+      "file": "BTN/node-000007.png",
+      "hero": "BTN",
+      "title": "BTN vs BB 3-bet",
+      "nodeType": "3BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "BB",
+          "BTN"
+        ],
+        "pathKey": "BTN|BB|BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "3BP",
+        "potBb": 15.0,
+        "stackBehindBb": 97.5,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            25.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.5818759135635367,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 9.5,
+            "amountKind": "incremental",
+            "toBb": 12.0,
+            "childNodeId": null,
+            "frequency": 0.33809254018327384,
+            "label": "Call 9.5"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 25.0,
+            "amountKind": "raiseTo",
+            "toBb": 25.0,
+            "childNodeId": 8,
+            "frequency": 0.08003087016546571,
+            "label": "Raise 25",
+            "actionKind": "4Bet",
+            "actionLabel": "4B",
+            "raiseNumber": 3,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 6,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 12.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 6,
+      "childNodeIds": [
+        8
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7
+      ]
+    },
+    {
+      "nodeId": 8,
+      "file": "BB/node-000008.png",
+      "hero": "BB",
+      "title": "BB vs BTN 4-bet",
+      "nodeType": "4BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "BB",
+          "BTN",
+          "BB"
+        ],
+        "pathKey": "BTN|BB|BTN|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "4BP",
+        "potBb": 37.5,
+        "stackBehindBb": 88.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            100.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.33139687888700897,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 13.0,
+            "amountKind": "incremental",
+            "toBb": 25.0,
+            "childNodeId": null,
+            "frequency": 0.45377914873671843,
+            "label": "Call 13"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 100.0,
+            "amountKind": "raiseTo",
+            "toBb": 100.0,
+            "childNodeId": 9,
+            "frequency": 0.214828958647978,
+            "label": "All-in 100",
+            "actionKind": "5Bet",
+            "actionLabel": "5B",
+            "raiseNumber": 4,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 7,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 25.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 7,
+      "childNodeIds": [
+        9
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8
+      ]
+    },
+    {
+      "nodeId": 9,
+      "file": "BTN/node-000009.png",
+      "hero": "BTN",
+      "title": "BTN vs BB 5-bet",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "BB",
+          "BTN",
+          "BB",
+          "BTN"
+        ],
+        "pathKey": "BTN|BB|BTN|BB|BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 12.0,
+          "amountKind": "raiseTo",
+          "toBb": 12.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "5BP",
+        "potBb": 125.5,
+        "stackBehindBb": 75.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            75.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.44097770869324615,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 75.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": null,
+            "frequency": 0.5590222913067535,
+            "label": "Call 75 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 8,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 100.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 8,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "nodeId": 10,
+      "file": "BB/node-000010.png",
+      "hero": "BB",
+      "title": "BB cold 4-bet",
+      "nodeType": "3BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB"
+        ],
+        "pathKey": "BTN|SB|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "3BP",
+        "potBb": 14.5,
+        "stackBehindBb": 99.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            23.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 11,
+            "frequency": 0.936809351432881,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 23.0,
+            "amountKind": "raiseTo",
+            "toBb": 23.0,
+            "childNodeId": 14,
+            "frequency": 0.06319064856711916,
+            "label": "Raise 23",
+            "actionKind": "coldFourBet",
+            "actionLabel": "C4B",
+            "raiseNumber": 3,
+            "cold": true
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 5,
+        "actionIndex": 1,
+        "rawType": "R",
+        "amountBb": 11.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 5,
+      "childNodeIds": [
+        11,
+        14
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10
+      ]
+    },
+    {
+      "nodeId": 11,
+      "file": "BTN/node-000011.png",
+      "hero": "BTN",
+      "title": "BTN vs SB 3-bet",
+      "nodeType": "3BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BTN"
+        ],
+        "pathKey": "BTN|SB|BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "3BP",
+        "potBb": 14.5,
+        "stackBehindBb": 97.5,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            25.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.570869205421142,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 8.5,
+            "amountKind": "incremental",
+            "toBb": 11.0,
+            "childNodeId": null,
+            "frequency": 0.32386292186183735,
+            "label": "Call 8.5"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 25.0,
+            "amountKind": "raiseTo",
+            "toBb": 25.0,
+            "childNodeId": 12,
+            "frequency": 0.10527091511177758,
+            "label": "Raise 25",
+            "actionKind": "4Bet",
+            "actionLabel": "4B",
+            "raiseNumber": 3,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 10,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 10,
+      "childNodeIds": [
+        12
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        11
+      ]
+    },
+    {
+      "nodeId": 12,
+      "file": "SB/node-000012.png",
+      "hero": "SB",
+      "title": "SB vs BTN 4-bet",
+      "nodeType": "4BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BTN",
+          "SB"
+        ],
+        "pathKey": "BTN|SB|BTN|SB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "SB",
+        "actorSeat": 4,
+        "nodeType": "4BP",
+        "potBb": 37.0,
+        "stackBehindBb": 89.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            100.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.33652914835476955,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 14.0,
+            "amountKind": "incremental",
+            "toBb": 25.0,
+            "childNodeId": null,
+            "frequency": 0.4543038545173333,
+            "label": "Call 14"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 100.0,
+            "amountKind": "raiseTo",
+            "toBb": 100.0,
+            "childNodeId": 13,
+            "frequency": 0.20916194055285486,
+            "label": "All-in 100",
+            "actionKind": "5Bet",
+            "actionLabel": "5B",
+            "raiseNumber": 4,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 11,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 25.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 11,
+      "childNodeIds": [
+        13
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "nodeId": 13,
+      "file": "BTN/node-000013.png",
+      "hero": "BTN",
+      "title": "BTN vs SB 5-bet",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BTN",
+          "SB",
+          "BTN"
+        ],
+        "pathKey": "BTN|SB|BTN|SB|BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 25.0,
+          "amountKind": "raiseTo",
+          "toBb": 25.0,
+          "actionKind": "4Bet",
+          "actionLabel": "4B",
+          "raiseNumber": 3,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "5BP",
+        "potBb": 126.0,
+        "stackBehindBb": 75.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            75.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.4304936964535727,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 75.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": null,
+            "frequency": 0.5695063035464273,
+            "label": "Call 75 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 12,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 100.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 12,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "nodeId": 14,
+      "file": "BTN/node-000014.png",
+      "hero": "BTN",
+      "title": "BTN vs BB cold 4-bet",
+      "nodeType": "C4B",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "BTN"
+        ],
+        "pathKey": "BTN|SB|BB|BTN"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        }
+      ],
+      "decision": {
+        "actor": "BTN",
+        "actorSeat": 3,
+        "nodeType": "C4B",
+        "potBb": 36.5,
+        "stackBehindBb": 97.5,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            100.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 15,
+            "frequency": 0.9247159417428727,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 100.0,
+            "amountKind": "raiseTo",
+            "toBb": 100.0,
+            "childNodeId": 17,
+            "frequency": 0.07528405825712697,
+            "label": "All-in 100",
+            "actionKind": "5Bet",
+            "actionLabel": "5B",
+            "raiseNumber": 4,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 10,
+        "actionIndex": 1,
+        "rawType": "R",
+        "amountBb": 23.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 10,
+      "childNodeIds": [
+        15,
+        17
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14
+      ]
+    },
+    {
+      "nodeId": 15,
+      "file": "SB/node-000015.png",
+      "hero": "SB",
+      "title": "SB vs BB cold 4-bet",
+      "nodeType": "C4B",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "SB"
+        ],
+        "pathKey": "BTN|SB|BB|SB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        }
+      ],
+      "decision": {
+        "actor": "SB",
+        "actorSeat": 4,
+        "nodeType": "C4B",
+        "potBb": 36.5,
+        "stackBehindBb": 89.0,
+        "primaryAction": {
+          "type": "raise",
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "amountKind": "raiseTo",
+          "sizesBb": [
+            100.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.29559738540987757,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 12.0,
+            "amountKind": "incremental",
+            "toBb": 23.0,
+            "childNodeId": null,
+            "frequency": 0.48380983869585403,
+            "label": "Call 12"
+          },
+          {
+            "actionIndex": 2,
+            "type": "raise",
+            "rawType": "R",
+            "amountBb": 100.0,
+            "amountKind": "raiseTo",
+            "toBb": 100.0,
+            "childNodeId": 16,
+            "frequency": 0.22058978201118942,
+            "label": "All-in 100",
+            "actionKind": "5Bet",
+            "actionLabel": "5B",
+            "raiseNumber": 4,
+            "cold": false
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 14,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 14,
+      "childNodeIds": [
+        16
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14,
+        15
+      ]
+    },
+    {
+      "nodeId": 16,
+      "file": "BB/node-000016.png",
+      "hero": "BB",
+      "title": "BTN r2.5 · SB r11 · BB r23 · SB r100",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "SB",
+          "BB"
+        ],
+        "pathKey": "BTN|SB|BB|SB|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "5BP",
+        "potBb": 125.5,
+        "stackBehindBb": 77.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            77.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.4125243788100842,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 77.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": null,
+            "frequency": 0.5874756211899157,
+            "label": "Call 77 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 15,
+        "actionIndex": 2,
+        "rawType": "R",
+        "amountBb": 100.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 15,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14,
+        15,
+        16
+      ]
+    },
+    {
+      "nodeId": 17,
+      "file": "SB/node-000017.png",
+      "hero": "SB",
+      "title": "BTN r2.5 · SB r11 · BB r23 · BTN r100",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "BTN",
+          "SB"
+        ],
+        "pathKey": "BTN|SB|BB|BTN|SB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "SB",
+        "actorSeat": 4,
+        "nodeType": "5BP",
+        "potBb": 134.0,
+        "stackBehindBb": 89.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            89.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": 18,
+            "frequency": 0.8819926533166709,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 89.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": 19,
+            "frequency": 0.11800734668332925,
+            "label": "Call 89 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 14,
+        "actionIndex": 1,
+        "rawType": "R",
+        "amountBb": 100.0,
+        "amountKind": "raiseTo"
+      },
+      "parentNodeId": 14,
+      "childNodeIds": [
+        18,
+        19
+      ],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14,
+        17
+      ]
+    },
+    {
+      "nodeId": 18,
+      "file": "BB/node-000018.png",
+      "hero": "BB",
+      "title": "BTN r2.5 · SB r11 · BB r23 · BTN r100",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "BTN",
+          "BB"
+        ],
+        "pathKey": "BTN|SB|BB|BTN|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "5BP",
+        "potBb": 134.0,
+        "stackBehindBb": 77.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            77.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.4891881390319701,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 77.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": null,
+            "frequency": 0.5108118609680299,
+            "label": "Call 77 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 17,
+        "actionIndex": 0,
+        "rawType": "F",
+        "amountBb": 0.0,
+        "amountKind": "none"
+      },
+      "parentNodeId": 17,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14,
+        17,
+        18
+      ]
+    },
+    {
+      "nodeId": 19,
+      "file": "BB/node-000019.png",
+      "hero": "BB",
+      "title": "BTN r2.5 · SB r11 · BB r23 · BTN r100 · SB c",
+      "nodeType": "5BP",
+      "navigation": {
+        "path": [
+          "BTN",
+          "SB",
+          "BB",
+          "BTN",
+          "SB_CC",
+          "BB"
+        ],
+        "pathKey": "BTN|SB|BB|BTN|SB_CC|BB"
+      },
+      "history": [
+        {
+          "sequenceIndex": 0,
+          "actor": "UTG",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 1,
+          "actor": "MP",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 2,
+          "actor": "CO",
+          "type": "fold",
+          "rawType": "F",
+          "amountBb": 0.0,
+          "amountKind": "none",
+          "toBb": null,
+          "actionKind": "fold",
+          "actionLabel": "Fold"
+        },
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "call",
+          "rawType": "C",
+          "amountBb": 89.0,
+          "amountKind": "incremental",
+          "toBb": 100.0,
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "cold": false
+        }
+      ],
+      "navigationHistory": [
+        {
+          "sequenceIndex": 3,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 2.5,
+          "amountKind": "raiseTo",
+          "toBb": 2.5,
+          "actionKind": "open",
+          "actionLabel": "RFI",
+          "raiseNumber": 1,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 4,
+          "actor": "SB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 11.0,
+          "amountKind": "raiseTo",
+          "toBb": 11.0,
+          "actionKind": "threeBet",
+          "actionLabel": "3B",
+          "raiseNumber": 2,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 5,
+          "actor": "BB",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 23.0,
+          "amountKind": "raiseTo",
+          "toBb": 23.0,
+          "actionKind": "coldFourBet",
+          "actionLabel": "C4B",
+          "raiseNumber": 3,
+          "cold": true
+        },
+        {
+          "sequenceIndex": 6,
+          "actor": "BTN",
+          "type": "raise",
+          "rawType": "R",
+          "amountBb": 100.0,
+          "amountKind": "raiseTo",
+          "toBb": 100.0,
+          "actionKind": "5Bet",
+          "actionLabel": "5B",
+          "raiseNumber": 4,
+          "cold": false
+        },
+        {
+          "sequenceIndex": 7,
+          "actor": "SB",
+          "type": "call",
+          "rawType": "C",
+          "amountBb": 89.0,
+          "amountKind": "incremental",
+          "toBb": 100.0,
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "cold": false
+        }
+      ],
+      "decision": {
+        "actor": "BB",
+        "actorSeat": 5,
+        "nodeType": "5BP",
+        "potBb": 223.0,
+        "stackBehindBb": 77.0,
+        "primaryAction": {
+          "type": "call",
+          "actionKind": "call",
+          "actionLabel": "Call",
+          "amountKind": "incremental",
+          "sizesBb": [
+            77.0
+          ]
+        },
+        "availableActions": [
+          {
+            "actionIndex": 0,
+            "type": "fold",
+            "rawType": "F",
+            "amountBb": 0.0,
+            "amountKind": "none",
+            "toBb": null,
+            "childNodeId": null,
+            "frequency": 0.8097926817741327,
+            "label": "Fold"
+          },
+          {
+            "actionIndex": 1,
+            "type": "call",
+            "rawType": "C",
+            "amountBb": 77.0,
+            "amountKind": "incremental",
+            "toBb": 100.0,
+            "childNodeId": null,
+            "frequency": 0.19020731822586726,
+            "label": "Call 77 (all-in)"
+          }
+        ]
+      },
+      "parent": {
+        "nodeId": 17,
+        "actionIndex": 1,
+        "rawType": "C",
+        "amountBb": 89.0,
+        "amountKind": "incremental"
+      },
+      "parentNodeId": 17,
+      "childNodeIds": [],
+      "lineageNodeIds": [
+        0,
+        1,
+        2,
+        3,
+        5,
+        10,
+        14,
+        17,
+        19
+      ]
+    }
+  ]
+}

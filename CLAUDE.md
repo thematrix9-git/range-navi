@@ -326,23 +326,30 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
 
 **Settings UI:** The ⚙ button next to `?` opens the `#rng-panel` popover: Show RNG toggle, Roll on (segmented), and Every (shown only for Timer). All controls are 44px tall. It uses the same touchstart-stopPropagation guard as `#overview-menu` (§11 #1). Settings are saved in `rn_rng`.
 
-### 6.14 Size branches (extra IP 3-bet sizes) — 2026-10-19
+### 6.14 Size branches (extra bet sizes from other sims) — 2026-10-19, generalized 2026-10-21
 
-**Purpose:** A legacy pack can gain more in-position 3-bet sizes from other HRC sims, e.g. 6max 2.2bb (7bb, its own) plus 6.5bb, 8bb and 9bb. Charts later in the hand stay on the chosen size, e.g. BTN's C4B vs MP's 6.5bb 3-bet only.
+**Purpose:** A legacy pack can gain more sizes at chosen decision points ("branch points") from other HRC sims. Charts later in the hand stay on the chosen size. 6max 2.2bb has three kinds:
+- Every IP 3-bet: 6.5 / 8 / 9bb, alongside its own 7bb. BTN's C4B vs MP's 6.5bb 3-bet comes from the 6.5 sim only.
+- BTN's 4-bet vs SB's or BB's 3-bet: 24 / 25 / 26bb, alongside "Default", the pack's own (22bb vs SB, 24bb vs BB).
+- BB's cold 4-bet vs BTN open + SB 3-bet: 24 / 25bb, alongside its own 23bb.
 
-**Data:** in `data.js`, the pack lists `sizeBranches` (folders under `images/`) and `baseSizeLabel` (its own IP 3-bet size, used when a filename has no size). Each folder is a schema-v2 export made with the HRC Screenshot Exporter's **"Nodes: IP 3-bet lines only"** filter (`exporter.in_ip_3bet_line`). Branch folders are hidden from the pack picker.
+**Data:** in `data.js`, the pack lists `sizeBranches: [{ folder, at }]`. `at` is either `"ip3bet"` (every `[opener, IP player]`, exported with the HRC Screenshot Exporter's **"Nodes: IP 3-bet lines only"** filter, `exporter.in_ip_3bet_line`) or a list of exact decision paths, e.g. `[["BTN","SB","BTN"], ["BTN","BB","BTN"]]`. The 4B/C4B sims are small 20-node trees exported whole. `baseSizeLabel` is the pack's own IP 3-bet size, for a filename without one. Branch folders are hidden from the pack picker.
 
 **Logic** (the "Size branches" section in `index.html`):
-- `isIp3betLine(path)` mirrors the exporter's filter. It is true when the second actor raised, isn't a blind, and the opener isn't SB.
-- On the IP 3-bet chart (`[opener, ip]`), `getChartsForNode` merges the pack's own chart (`branch: "base"`) with every branch's chart, sorted by size (`ip3betSizeCharts`).
-- Showing a chart there sets `state.branch`. Deeper nodes then come from that branch only: see `activeBranch`, `findNode` and `branchCharts`, plus the guard in `openChartForPath`.
-- If `state.branch` is unset, `resolvedBranch` falls back to the starred default size, else the base charts.
-- `render()` clears the branch once the path is no longer an IP 3-bet line.
-- The original filename-based logic now lives in `getChartsForNodeBase`.
-- The 3-bettor's seat shows the chosen size instead of "#2", and the breadcrumb reads branch sizes from the branch's metadata.
-- In the chart header, the 3-bettor's step gets a ▾ menu (`lineSizeOptions` / `toggleSizeMenu`) that lists only the sizes this exact line exists in.
+- `branchPointOf(path)` finds the deepest branch point the path is at or under. `branchesAt(point)` lists its folders. `isIp3betLine` mirrors the exporter filter.
+- On the point's own chart, `getChartsForNode` merges the pack's charts (`branch: "base"`) with each branch's (`pointCharts`). Own-action points sort by size.
+- A **facing** point is one where the hero re-enters, e.g. BTN facing SB's 3-bet. The pack's tabs there are sized by the faced bet (10/11/12bb), so they stay first, the branch tabs read "4B 24bb", and the base option in menus and the capsule is "Default". `pointOptions` gives one option per branch.
+- Showing a chart at the point sets `state.branches[pointKey]`. Deeper nodes then come only from that branch: see `activeBranch`, `findNode` and `branchCharts`, plus the guard in `openChartForPath`.
+- If nothing has been chosen, `resolvedBranch` uses the starred default size, else "base". `getPreferredVariantIndex` opens a point's chart on the chosen branch, then the starred size, then the pack's own chart, so viewing a chart never silently changes the defaults.
+- `render()` drops a choice once the path leaves that point's subtree.
+- The original filename-based logic lives in `getChartsForNodeBase`.
+- The point player's seat shows the chosen size, when their first appearance is the point step. The breadcrumb reads branch sizes from the branch's metadata.
+- Header ▾ menus:
+  - At a point's chart, the hero step lists the branches. At a facing point viewed on base, the faced step also lists the pack's tabs.
+  - Deeper in the hand, the point step lists only the sizes this exact line exists in (`lineSizeOptions` / `toggleSizeMenu`).
+  - Elsewhere, the step the tabs describe lists them (`sizeMenus` in `renderModal`).
 
-**Hold-to-pick:** holding an eligible seat for `HOLD_MS` (1s) after an open replaces it with a capsule. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
+**Hold-to-pick:** holding a seat for `HOLD_MS` (1s) replaces it with a capsule when its next tap would land on a branch point with 2+ options. That covers an IP seat after an open, BTN re-entering after a blind 3-bets, and BB after SB 3-bets. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
 
 **Legacy 2.2bb source sim:** `images/6max_22` was generated from `HRC Pio Converter\6max 2.2x 2025 HRC 7bb NL500.zip`. This was confirmed by re-rendering a chart and matching it exactly; the "6max 2.2-7 CC GG…" exports are a different sim. On 2026-10-20 the 28 "facing a cold 4-bet" charts it lacked (`A-B-C_C4B`, `B-A-C_C4B`) were rendered from that sim with the exporter's `render_node_png` + `LEGACY_IOS` profile. Six of those lines had been falling back to the `_Squeeze` chart from the squeeze pot.
 

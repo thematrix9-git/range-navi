@@ -129,14 +129,27 @@ const PACKS = [
     format:      "sixMax",
     imageFolder: "6max_22",
 
-    // ── Extra IP 3-bet sizes ("size branches")
-    //    Each folder is a separate HRC sim exported with the HRC Screenshot Exporter's
-    //    "IP 3-bet lines only" filter. On an IP 3-bet chart every size shows as a tab,
-    //    and the rest of the hand follows the size you pick. These folders are hidden
-    //    from the pack picker. baseSizeLabel = this pack's own IP 3-bet size, used when
-    //    a chart's filename has no size (e.g. CO_3B-UTG.png).
+    // ── Extra bet sizes from other sims ("size branches")
+    //    Each folder is a separate HRC sim exported with the HRC Screenshot Exporter.
+    //    `at` = the decision node(s) whose size it adds: "ip3bet" (every in-position
+    //    3-bet vs an open; export with the "IP 3-bet lines only" filter) or a list of
+    //    exact paths. On that node's chart every size shows as a tab, and the rest of
+    //    the hand follows the size you pick. These folders are hidden from the pack
+    //    picker. baseSizeLabel = this pack's own IP 3-bet size, used when a chart's
+    //    filename has no size (e.g. CO_3B-UTG.png).
     baseSizeLabel: "7bb",
-    sizeBranches: ["6max_22_3b6.5", "6max_22_3b8", "6max_22_3b9"],
+    sizeBranches: [
+      { folder: "6max_22_3b6.5", at: "ip3bet" },
+      { folder: "6max_22_3b8",   at: "ip3bet" },
+      { folder: "6max_22_3b9",   at: "ip3bet" },
+      // BTN 4-bet size vs SB's / BB's 3-bet (pack default: 22bb vs SB, 24bb vs BB)
+      { folder: "6max_22_4b24",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
+      { folder: "6max_22_4b25",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
+      { folder: "6max_22_4b26",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
+      // BB cold 4-bet size vs BTN open + SB 3-bet (pack default: 23bb)
+      { folder: "6max_22_c4b24", at: [["BTN","SB","BB"]] },
+      { folder: "6max_22_c4b25", at: [["BTN","SB","BB"]] },
+    ],
 
     // ── Double-tap defaults: overview opened when a position is double-tapped
     //    with nothing else in the path. Can be overridden per-pack in the app.

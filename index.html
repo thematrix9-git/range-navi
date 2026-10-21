@@ -1366,7 +1366,7 @@
   /* Hold-to-pick 3-bet sizes: one red segment per size (after a green Call if allowed) */
   .split-capsule.sizes { --seg: 64px; width: auto; }
   .split-capsule.sizes.wide { --seg: 80px; }
-  .split-capsule.sizes .split-half { flex: none; width: var(--seg); }
+  .split-capsule.sizes .split-half { flex: none; min-width: var(--seg); padding: 0 12px; }
   .split-capsule.sizes .split-3b + .split-3b { border-left: 1px solid rgba(0,0,0,0.35); }
 
   /* While a seat is being held: a soft ring grows until the sizes open */
@@ -2003,9 +2003,9 @@ const state = {
   // Metadata node selected for each visible tap path. This lets a later tap
   // continue down the exact sized branch, even when intervening players fold.
   metadataSelections: {},
-  // Size branch chosen for the current IP 3-bet line: null = not chosen yet,
-  // "base" = the pack's own charts, or a sizeBranches folder (see "Size branches").
-  branch:             null,
+  // Size branch chosen at each branch point of the current hand, keyed by the point's
+  // path ("BTN|SB|BTN"): "base" = the pack's own charts, or a sizeBranches folder.
+  branches:           {},
   // Seat currently showing the hold-to-pick 3-bet size capsule
   sizePickerPos:      null,
 };
@@ -2108,15 +2108,20 @@ function metadataNodesForPath(path, pack = getCurrentPack()) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// Size branches — extra IP 3-bet sizes from separate sims
+// Size branches — extra bet sizes from separate sims
 // ═══════════════════════════════════════════════════════════════
-// A legacy pack can list `sizeBranches` in data.js: schema-v2 exports of other sims
-// (exporter filter "IP 3-bet lines only"), each adding one more IP 3-bet size.
-//   • On the IP 3-bet chart itself — path [opener, IP player] — the pack's own chart
-//     and every branch's chart show together as size tabs.
+// A legacy pack can list `sizeBranches` in data.js: schema-v2 exports of other sims,
+// each offering a different size at one or more BRANCH POINTS (decision nodes):
+//   { folder, at: "ip3bet" }           → every IP 3-bet chart [opener, IP player]
+//   { folder, at: [["BTN","SB","BTN"]] } → those exact decision nodes (e.g. BTN's 4-bet)
+//   • On a branch point's own chart, the pack's charts (branch "base") and every
+//     branch's chart show together as tabs.
 //   • Once a size is chosen (tab, hold-to-pick capsule, or the trail's ▾ menu) every
-//     later node in that hand shows ONLY that branch's charts, e.g. BTN's C4B range
-//     vs MP's 6.5bb 3-bet, never the 7bb tree's.
+//     later node under that point shows ONLY that branch's charts, e.g. BTN's C4B
+//     range vs MP's 6.5bb 3-bet, or SB's response to BTN's 25bb 4-bet.
+// A "facing" point (hero re-enters, e.g. BTN facing SB's 3-bet): the pack's own tabs
+// there are sized by the bet being faced, so its option is called "Default" and the
+// branch tabs read "4B 24bb".
 // "IP 3-bet line" = the second actor raised (no _CC), isn't a blind, and the opener
 // isn't SB (BvB). This mirrors the exporter's in_ip_3bet_line().
 function isIp3betLine(path) {
@@ -2124,9 +2129,35 @@ function isIp3betLine(path) {
          !pathIsCC(path[1]) && !["SB", "BB"].includes(pathPos(path[1]));
 }
 
-function getBranchFolders(pack = getCurrentPack()) {
+const samePath = (a, b) => a.length === b.length && a.every((s, i) => s === b[i]);
+const isPrefix = (p, path) => p.length <= path.length && p.every((s, i) => s === path[i]);
+const pointKey = point => point.join("|");
+
+function packBranches(pack = getCurrentPack()) {
   const packs = getMetadataRoot()?.packs || {};
-  return (pack?.sizeBranches || []).filter(f => packs[f]?.schemaVersion === 2);
+  return (pack?.sizeBranches || []).filter(b => packs[b.folder]?.schemaVersion === 2);
+}
+
+function branchPointsOf(b, path) {
+  if (b.at === "ip3bet") return isIp3betLine(path) ? [path.slice(0, 2)] : [];
+  return b.at || [];
+}
+
+// The branch point this path is at or under (the deepest one), or null
+function branchPointOf(path) {
+  let best = null;
+  for (const b of packBranches()) {
+    for (const p of branchPointsOf(b, path)) {
+      if (isPrefix(p, path) && (!best || p.length > best.length)) best = p;
+    }
+  }
+  return best;
+}
+
+function branchesAt(point) {
+  return packBranches()
+    .filter(b => branchPointsOf(b, point).some(p => samePath(p, point)))
+    .map(b => b.folder);
 }
 
 function branchRecords(folder, path) {
@@ -2140,34 +2171,61 @@ function branchCharts(folder, path) {
 }
 
 const sizeNumber = label => parseFloat(String(label || "").replace(/[^\d.]/g, "")) || 0;
+const isFacingPoint = point => isReentryStep(point, point.length - 1);
 
-// Every size available on the IP 3-bet chart [opener, ip]: the pack's own chart(s)
-// tagged "base", then each branch's, sorted by size.
-function ip3betSizeCharts(path2) {
-  const pack = getCurrentPack();
-  const base = getChartsForNodeBase({ path: path2, imageFolder: pathPos(path2[1]) })
+// Tabs on a branch point's own chart: the pack's chart(s) tagged "base", then each
+// branch's. Own-action points sort by size; facing points keep the pack's tabs first.
+function pointCharts(point) {
+  const pack   = getCurrentPack();
+  const facing = isFacingPoint(point);
+  const base = getChartsForNodeBase({ path: point, imageFolder: pathPos(point[point.length - 1]) })
     .filter(c => !c.missing)
     .map(c => ({ ...c, branch: "base",
-                 label: c.label && c.label !== "Base" ? c.label : (pack?.baseSizeLabel || c.label) }));
-  const all = [...base, ...getBranchFolders(pack).flatMap(f => branchCharts(f, path2))];
-  return all.sort((a, b) => sizeNumber(a.label) - sizeNumber(b.label));
+                 label: (c.label && c.label !== "Base") ? c.label
+                      : (!facing && point.length === 2 && pack?.baseSizeLabel) || c.label || "Default" }));
+  const extra = branchesAt(point).flatMap(f => branchCharts(f, point)).map(c => facing
+    ? { ...c, label: `${c.metadata?.decision?.primaryAction?.actionLabel || ""} ${c.label}`.trim() }
+    : c);
+  if (facing) return [...base, ...extra.sort((a, b) => sizeNumber(a.label) - sizeNumber(b.label))];
+  return [...base, ...extra].sort((a, b) => sizeNumber(a.label) - sizeNumber(b.label));
 }
 
-// The branch the current hand follows. Not chosen yet → the starred default size for
-// that IP 3-bet spot (if it belongs to a branch), else the pack's own charts.
+// One choice per branch at a point (for the capsule and the trail menus)
+function pointOptions(point) {
+  const facing = isFacingPoint(point);
+  const seen = new Set();
+  const options = [];
+  for (const c of pointCharts(point)) {
+    if (seen.has(c.branch)) continue;
+    seen.add(c.branch);
+    const label = c.branch === "base"
+      ? (facing ? "Default" : c.label)
+      : window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
+    options.push({ branch: c.branch, label });
+  }
+  return options;
+}
+
+// The branch this hand follows at its branch point. Not chosen yet → the starred
+// default size for that spot (if it belongs to a branch), else the pack's own charts.
 function resolvedBranch(path) {
-  if (!isIp3betLine(path) || getBranchFolders().length === 0) return null;
-  if (state.branch) return state.branch;
-  const preferred = getDefaultSizeLabel(getSizeKey(path.slice(0, 2)));
-  const hit = preferred && ip3betSizeCharts(path.slice(0, 2)).find(c => c.label === preferred);
+  const point = branchPointOf(path);
+  if (!point) return null;
+  const chosen = state.branches[pointKey(point)];
+  if (chosen) return chosen;
+  const preferred = getDefaultSizeLabel(getSizeKey(point));
+  const hit = preferred && pointCharts(point).find(c => c.label === preferred);
   return hit ? hit.branch : "base";
 }
 
-// Branch folder whose charts replace the pack's own for this path (deeper than the
-// IP 3-bet chart), or null to use the pack's own charts.
+// Branch folder whose charts replace the pack's own for this path, or null
 function activeBranch(path) {
   const b = resolvedBranch(path);
   return b && b !== "base" ? b : null;
+}
+
+function chooseBranch(point, branch) {
+  state.branches[pointKey(point)] = branch;
 }
 
 function branchNode(folder, path) {
@@ -2177,12 +2235,14 @@ function branchNode(folder, path) {
            title: records[0].title || `${records[0].hero} decision` };
 }
 
-// Size label of the chosen branch on the IP 3-bet chart (shown on the 3-bettor's seat)
+// Size of the branch point's step on the chosen branch (seat label / trail), or null
+// to let the pack's own size logic decide (a facing point's "Default")
 function branchSizeLabel(path) {
+  const point = branchPointOf(path);
+  if (!point) return null;
   const b = resolvedBranch(path);
-  if (!b) return null;
-  const c = ip3betSizeCharts(path.slice(0, 2)).find(x => x.branch === b);
-  return c?.label || null;
+  const opt = pointOptions(point).find(o => o.branch === b);
+  return opt && opt.label !== "Default" ? opt.label : null;
 }
 
 // ── Per-node "default situation" (C4B vs Squeeze) ─────────────────
@@ -2240,11 +2300,17 @@ function getSizeKey(path) {
 function getPreferredVariantIndex(node) {
   if (!node) return 0;
   const charts = getChartsForNode(node);
-  // IP 3-bet chart: open on the size branch this hand already follows
+  // Branch point chart: open on the size this hand already follows; if none was
+  // chosen, the starred default size, else the pack's own chart (keeps the defaults)
   const nodePath = node.path || [];
-  if (nodePath.length === 2 && state.branch && isIp3betLine(nodePath)) {
-    const i = charts.findIndex(c => c.branch === state.branch);
+  const point = branchPointOf(nodePath);
+  if (point && samePath(point, nodePath)) {
+    const chosen = state.branches[pointKey(point)];
+    const starred = getDefaultSizeLabel(getSizeKey(nodePath));
+    const i = chosen ? charts.findIndex(c => c.branch === chosen)
+            : starred ? charts.findIndex(c => c.label === starred) : -1;
     if (i >= 0) return i;
+    return Math.max(0, charts.findIndex(c => c.branch === "base"));
   }
   const selectedId = state.metadataSelections[metadataSelectionKey(node.path || [])];
   if (selectedId !== undefined) {
@@ -2286,7 +2352,7 @@ function getEffectivePacks() {
     metadata: metadataPacks[pack.imageFolder] || null,
   }));
   // Size-branch folders belong to their pack; never list them as packs of their own
-  const branchFolders = new Set(basePacks.flatMap(p => p.sizeBranches || []));
+  const branchFolders = new Set(basePacks.flatMap(p => (p.sizeBranches || []).map(b => b.folder)));
 
   // All unique top-level folders in the manifest
   const folders = [...new Set([
@@ -2440,17 +2506,18 @@ function findNode(path) {
       metadataRecords: records,
     };
   }
-  // On a chosen size branch, nodes past the IP 3-bet chart come from that branch only
-  const folder = path.length > 2 ? activeBranch(path) : null;
+  // On a chosen size branch, nodes past the branch point come from that branch only
+  const point  = branchPointOf(path);
+  const folder = point && path.length > point.length ? activeBranch(path) : null;
   if (folder) return branchNode(folder, path);
 
   const legacy = pack.nodes.find(n =>
     n.path.length === path.length &&
     n.path.every((p, i) => p === path[i])
   ) || null;
-  if (legacy || path.length !== 2 || !isIp3betLine(path)) return legacy;
-  // IP 3-bet chart that only a branch has
-  for (const f of getBranchFolders(pack)) {
+  if (legacy || !point || !samePath(point, path)) return legacy;
+  // A branch point chart that only a branch has
+  for (const f of branchesAt(point)) {
     const node = branchNode(f, path);
     if (node) return node;
   }
@@ -2465,7 +2532,8 @@ function openChartForPath(path) {
   let node = findNode(path);
   // On a size branch, a node the branch doesn't have must not fall back to the
   // pack's own (different-size) synthetic charts below
-  if (!node && path.length > 2 && activeBranch(path)) return false;
+  const point = branchPointOf(path);
+  if (!node && point && path.length > point.length && activeBranch(path)) return false;
 
   // Synthetic node: 2-step CC path (e.g. ["UTG","BTN_CC"]) — no data.js entry needed
   if (!node && path.length === 2 && pathIsCC(path[path.length - 1])) {
@@ -2548,13 +2616,14 @@ function getOverviewsForPosition(pos) {
 //
 //  OLD naming still works as a fallback (imageBase + _variant suffix).
 
-// Size branches first (see "Size branches"): the IP 3-bet chart merges every size;
-// deeper nodes use the chosen branch's charts only; everything else is unchanged.
+// Size branches first (see "Size branches"): a branch point's chart merges every
+// size; deeper nodes use the chosen branch's charts only; everything else is unchanged.
 function getChartsForNode(node) {
-  const path = node.path || [];
-  if (isIp3betLine(path) && getBranchFolders().length) {
-    if (path.length === 2) {
-      const merged = ip3betSizeCharts(path);
+  const path  = node.path || [];
+  const point = branchPointOf(path);
+  if (point) {
+    if (path.length === point.length) {
+      const merged = pointCharts(point);
       if (merged.length) return merged;
     } else {
       const folder = activeBranch(path);
@@ -2953,11 +3022,13 @@ function viewChart() {
 function back() {
   if (state.currentPath.length === 0) return;
   state.currentPath.pop();
+  state.sizePickerPos = null;
   render();
 }
 
 function resetPath() {
   state.currentPath = [];
+  state.sizePickerPos = null;
   lastTap = { pos: null, time: 0 };
   render();
 }
@@ -3334,9 +3405,10 @@ function renderOverviewManager() {
 // Render
 // ═══════════════════════════════════════════════════════════════
 function render() {
-  // A size branch only lives as long as the IP 3-bet line it was chosen for
-  if (!isIp3betLine(state.currentPath)) state.branch = null;
-  if (state.currentPath.length !== 1) state.sizePickerPos = null;
+  // A size branch only lives while the hand is still at or under its branch point
+  for (const key of Object.keys(state.branches)) {
+    if (!isPrefix(key.split("|"), state.currentPath)) delete state.branches[key];
+  }
   renderFormatPicker();
   renderPackPicker();
   renderTable();
@@ -3391,11 +3463,12 @@ function renderTable() {
     const opener = state.currentPath.length === 1 ? pathPos(state.currentPath[0]) : null;
     const useSplit = opener && canColdCall(pos, opener) && stepIndex === -1;
 
-    // Hold-to-pick: after an open, an IP seat with 2+ 3-bet sizes can be held to
-    // expand into one segment per size (plus Call where cold-calling is allowed)
-    const pickSizes = (holdSizePicker && opener && stepIndex === -1 &&
-                       isIp3betLine([state.currentPath[0], pos]))
-      ? ip3betSizeCharts([state.currentPath[0], pos]) : [];
+    // Hold-to-pick: a seat whose next tap would land on a branch point with 2+ sizes
+    // (an IP 3-bet, BTN's 4-bet, BB's cold 4-bet…) can be held to expand into one
+    // segment per size (plus Call where cold-calling is allowed)
+    const candidate = [...state.currentPath, pos];
+    const pickPoint = holdSizePicker && state.currentPath.length > 0 ? branchPointOf(candidate) : null;
+    const pickSizes = pickPoint && samePath(pickPoint, candidate) ? pointOptions(pickPoint) : [];
     const canPick = pickSizes.length > 1;
 
     if (canPick && state.sizePickerPos === pos) {
@@ -3413,10 +3486,10 @@ function renderTable() {
         wrap.appendChild(seg);
       };
       if (useSplit) addSeg("split-cc", "Call", `${pos} call`, () => handlePositionTap(pos, "CC"));
-      pickSizes.forEach(c => {
-        const label = String(c.label || "").replace(/bb$/i, "");
-        addSeg("split-3b", label, `${pos} 3-bet to ${c.label}`, () => {
-          state.branch = c.branch;
+      pickSizes.forEach(o => {
+        const label = String(o.label || "").replace(/bb$/i, "");
+        addSeg("split-3b", label, `${pos} ${o.label}`, () => {
+          chooseBranch(pickPoint, o.branch);
           handlePositionTap(pos, useSplit ? "3B" : undefined);
         });
       });
@@ -3465,7 +3538,8 @@ function renderTable() {
         const step = document.createElement("span");
         step.className = "step";
         // The IP 3-bettor shows the 3-bet size the hand follows (packs with size branches)
-        const branchSize = stepIndex === 1 && isIp3betLine(state.currentPath) && getBranchFolders().length
+        const seatPoint  = branchPointOf(state.currentPath);
+        const branchSize = seatPoint && stepIndex === seatPoint.length - 1
           ? branchSizeLabel(state.currentPath) : null;
         step.textContent = branchSize || ("#" + (stepIndex + 1) + (stepIsCC ? " CC" : ""));
         btn.appendChild(step);
@@ -3569,9 +3643,12 @@ function legacyStepSizes(path, activeLabel) {
     if (prefix.length === path.length && activeLabel !== undefined) {
       return activeLabel && activeLabel !== "Base" ? activeLabel : null;
     }
-    // The IP 3-bet step of a pack with size branches: the size this hand follows
-    if (prefix.length === 2 && isIp3betLine(prefix) && getBranchFolders().length) {
-      return branchSizeLabel(prefix);
+    // A branch point's own step: the size this hand follows (a facing point's
+    // "Default" falls through to the pack's own sizes)
+    const prefixPoint = branchPointOf(prefix);
+    if (prefixPoint && samePath(prefixPoint, prefix)) {
+      const label = branchSizeLabel(prefix);
+      if (label) return label;
     }
     const saved = getDefaultSizeLabel(getSizeKey(prefix));
     if (saved) return saved;
@@ -3593,7 +3670,8 @@ function legacyStepSizes(path, activeLabel) {
   });
 }
 
-function renderActionPath(path, activeVariantLabel, metadataRecord = null, variantMenu = null) {
+// sizeMenus: [{ step, options: [{ label, on, pick }] }] — ▾ menus for the open chart's tabs
+function renderActionPath(path, activeVariantLabel, metadataRecord = null, sizeMenus = []) {
   const el = document.getElementById("modal-action-path");
   if (!el) return;
   el.innerHTML = "";
@@ -3602,7 +3680,7 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null, varia
     ? window.RANGE_NAVIGATOR_CORE.actionTrail(metadataRecord, path)
     : null;
   const legacySizes = metadataRecord ? null : legacyStepSizes(path, activeVariantLabel || null);
-  const sizeOptions = lineSizeOptions(path);
+  const lineMenu = lineSizeOptions(path);
 
   const verbFor = (p, i) => {
     const lbl = getStepActionLabel(p, i);
@@ -3667,8 +3745,9 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null, varia
 
     // ▾ size menu: the IP 3-bet step of a deeper line switches the whole line to
     // another size branch; otherwise the step the chart's size tabs describe lists them
-    const menuOptions = (i === 1 && sizeOptions.length > 1) ? sizeOptions
-                      : (variantMenu && i === variantMenu.step) ? variantMenu.options : null;
+    const stepMenu    = sizeMenus.find(m => m.step === i && m.options.length > 1);
+    const menuOptions = (i === lineMenu.step && lineMenu.options.length > 1) ? lineMenu.options
+                      : stepMenu ? stepMenu.options : null;
     if (menuOptions) {
       group.classList.add("switchable");
       const caret = document.createElement("span");
@@ -3687,19 +3766,22 @@ function renderActionPath(path, activeVariantLabel, metadataRecord = null, varia
   });
 }
 
-// Sizes the current deeper line exists in: the pack's own charts ("base") and each
-// branch that has a chart for this exact path.
+// On a line deeper than its branch point: the sizes this exact line exists in (the
+// pack's own charts and each branch that has a chart for it), shown as a ▾ menu on
+// the branch point's step. Returns { step, options }.
 function lineSizeOptions(path) {
-  if (path.length <= 2 || !isIp3betLine(path) || getBranchFolders().length === 0) return [];
+  const point = branchPointOf(path);
+  if (!point || path.length <= point.length) return { step: -1, options: [] };
   const current = resolvedBranch(path);
-  return ip3betSizeCharts(path.slice(0, 2))
-    .filter(c => c.branch === "base"
+  const options = pointOptions(point)
+    .filter(o => o.branch === "base"
       ? getChartsForNodeBase({ path, imageFolder: pathPos(path[path.length - 1]) }).some(x => !x.missing)
-      : branchRecords(c.branch, path).length > 0)
-    .map(c => ({
-      label: c.label, on: c.branch === current,
-      pick: () => { state.branch = c.branch; render(); openChartForPath(path); },
+      : branchRecords(o.branch, path).length > 0)
+    .map(o => ({
+      label: o.label, on: o.branch === current,
+      pick: () => { chooseBranch(point, o.branch); render(); openChartForPath(path); },
     }));
+  return { step: point.length - 1, options };
 }
 
 // options: [{ label, on, pick }]
@@ -3982,30 +4064,42 @@ function renderModal() {
   if (chart?.metadata) {
     state.metadataSelections[metadataSelectionKey(state.activeNode.path || [])] = chart.metadata.nodeId;
   }
-  // The size shown on an IP 3-bet chart becomes the size the rest of the hand follows
-  const activePath = state.activeNode.path || [];
-  if (chart?.branch && activePath.length === 2 && isIp3betLine(activePath)) {
-    state.branch = chart.branch;
-  }
+  // The size shown on a branch point's chart becomes the size the rest of the hand follows
+  const navPath = state.activeNode.path || [];
+  const point   = branchPointOf(navPath);
+  const atPoint = !!point && samePath(point, navPath);
+  if (chart?.branch && atPoint) chooseBranch(point, chart.branch);
+
   const activeTitle = chart?.metadata?.title || state.activeNode.title;
   renderModalTitle(activeTitle, variantLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
-  // Size tabs as a menu on the trail step they describe (tap the red size to switch).
+
+  // Size tabs as ▾ menus on the trail step they describe (tap the red size to switch).
   // A legacy "facing" chart's size belongs to the bet being faced (see legacyStepSizes);
-  // otherwise it's the last step's own size.
-  const navPath = state.activeNode.path || [];
-  const sizeTabs = charts.map((c, i) => ({ label: c.label, index: i }))
+  // otherwise it's the last step's own size. A branch point's own step lists one
+  // option per branch ("Default" = the pack's own charts at a facing point).
+  const last = navPath.length - 1;
+  const sizeMenus = [];
+  const tabMenu = (step, tabs) => sizeMenus.push({ step, options: tabs.map(t => ({
+    label: t.label, on: t.index === state.activeVariantIndex, pick: () => selectVariant(t.index),
+  })) });
+  const sizeTabs = charts.map((c, i) => ({ label: c.label, index: i, branch: c.branch }))
                          .filter(t => /^\d/.test(t.label || ""));
-  let variantMenu = null;
-  if (sizeTabs.length > 1 && navPath.length > 0) {
-    const last = navPath.length - 1;
+  if (atPoint) {
+    sizeMenus.push({ step: last, options: pointOptions(point).map(o => ({
+      label: o.label, on: o.branch === chart?.branch,
+      pick: () => selectVariant(o.branch === "base" && chart?.branch === "base"
+        ? state.activeVariantIndex
+        : charts.findIndex(c => c.branch === o.branch)),
+    })) });
+    if (isFacingPoint(point) && chart?.branch === "base") {
+      tabMenu(last - 1, sizeTabs.filter(t => t.branch === "base"));
+    }
+  } else if (sizeTabs.length > 1 && navPath.length > 0) {
     const facing = !chart?.metadata && !getPackMetadata(getCurrentPack()) && isReentryStep(navPath, last);
-    variantMenu = {
-      step: facing ? last - 1 : last,
-      options: sizeTabs.map(t => ({ label: t.label, on: t.index === state.activeVariantIndex, pick: () => selectVariant(t.index) })),
-    };
+    tabMenu(facing ? last - 1 : last, sizeTabs);
   }
-  renderActionPath(navPath, effectiveLabel, chart?.metadata || null, variantMenu);
+  renderActionPath(navPath, effectiveLabel, chart?.metadata || null, sizeMenus);
 
   // ── Variant tabs + optional Split button ──
   const tabs = document.getElementById("variant-tabs");
