@@ -990,28 +990,33 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
   }
-  /* Call % | Raise % switch, under the % button (only on charts with a raise-% twin) */
+  /* Call % | Raise % switch, sitting on the right end of the chart's own header bar
+     (only on charts with a raise-% twin). Lives inside #zoom-wrapper so it zooms and
+     pans with the image; sized in the PNG's own pixels and scaled by
+     positionCellSwitch(). */
   #cell-mode {
     position: absolute;
-    top: 62px;
-    left: 20px;
+    transform-origin: top right;
     display: flex;
     gap: 3px;
     padding: 3px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    background: #11151c;
+    border: 1px solid rgba(255,255,255,0.12);
+    z-index: 2;
+    cursor: default;
   }
   #cell-mode button {
-    height: 36px;
+    height: 26px;
     padding: 0 12px;
     border: 0;
-    border-radius: 9px;
+    border-radius: 7px;
     background: transparent;
     color: rgba(255,255,255,0.55);
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
+    white-space: nowrap;
   }
   #cell-mode button[data-mode="call"].active  { background: rgba(190,225,190,0.18); color: #bee1be; }
   #cell-mode button[data-mode="raise"].active { background: rgba(255,164,164,0.18); color: #ffa4a4; }
@@ -1824,10 +1829,6 @@
 <div id="chart-modal" class="hidden">
   <header class="modal-head">
     <button id="freq-btn" aria-label="Set frequencies">%</button>
-    <div id="cell-mode" class="hidden" role="group" aria-label="Hand percentages show">
-      <button data-mode="call">Call %</button>
-      <button data-mode="raise">Raise %</button>
-    </div>
     <div>
       <h2 id="modal-title"></h2>
       <div id="modal-action-path"></div>
@@ -1846,6 +1847,10 @@
   <div id="zoom-area">
     <div id="zoom-wrapper">
       <img id="chart-img" class="hidden" alt="" decoding="async">
+      <div id="cell-mode" class="hidden" role="group" aria-label="Hand percentages show">
+        <button data-mode="call">Call %</button>
+        <button data-mode="raise">Raise %</button>
+      </div>
     </div>
     <div id="chart-placeholder" class="hidden">
       <div class="placeholder">
@@ -4144,6 +4149,25 @@ function renderCellModeSwitch(chart) {
   el.classList.toggle("hidden", !available);
   el.querySelectorAll("button").forEach(b =>
     b.classList.toggle("active", b.dataset.mode === cellMode));
+  positionCellSwitch();
+}
+
+// Pin the switch to the right end of the chart image's 48px header bar (in the
+// PNG's own pixels), scaled with the image as it's displayed.
+const CHART_HEADER_PX = 48;
+function positionCellSwitch() {
+  const el  = document.getElementById("cell-mode");
+  const img = document.getElementById("chart-img");
+  if (el.classList.contains("hidden") || img.classList.contains("hidden") || !img.naturalHeight) {
+    el.style.visibility = "hidden";
+    return;
+  }
+  const wrapper = document.getElementById("zoom-wrapper");
+  const s = img.offsetHeight / img.naturalHeight;
+  el.style.visibility = "visible";
+  el.style.transform  = `scale(${s})`;
+  el.style.right = (wrapper.clientWidth - (img.offsetLeft + img.offsetWidth) + 10 * s) + "px";
+  el.style.top   = (img.offsetTop + (CHART_HEADER_PX - el.offsetHeight) / 2 * s) + "px";
 }
 
 // Show one of the open chart's size/variant tabs (used by the tabs and the trail menu)
@@ -4418,6 +4442,7 @@ function positionFreqBar() {
   const areaRect = area.getBoundingClientRect();
   const offset   = imgRect.top - areaRect.top - 26;
   bar.style.top  = Math.max(8, offset) + "px";
+  positionCellSwitch();
 }
 
 function openFreqPanel() {
@@ -4816,6 +4841,12 @@ function init() {
     try { localStorage.setItem("rn_cell_mode", cellMode); } catch {}
     renderModal();
   }));
+  // The switch sits inside the chart area, where a tap closes the popup and a drag
+  // pans: keep its touches and clicks to itself
+  const cellSwitch = document.getElementById("cell-mode");
+  ["touchstart", "touchend", "mousedown", "click", "dblclick"].forEach(type =>
+    cellSwitch.addEventListener(type, e => e.stopPropagation(), { passive: true }));
+  window.addEventListener("resize", positionCellSwitch);   // rotation / pane size
 
   // Sync toggles to current state
   document.getElementById("auto-reset-toggle").checked = autoResetOnFeltTap;

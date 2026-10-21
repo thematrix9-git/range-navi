@@ -370,7 +370,9 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
 **Call % / Raise % switch (2026-10-21):**
 - The exporter highlights the header token whose % the cells show (`shown_actions`). `cell_value="raise"` prints raise % (all sizes).
 - Every sim-backed spot with both a call and a raise has a raise-% twin at `images/_raise/<same path>`.
-- In the popup, the `#cell-mode` switch (under the % button, shown only when a twin exists) picks between them via `displaySrc(chart)`, persisted as `rn_cell_mode`. Folders starting with `_` are never packs.
+- In the popup, the `#cell-mode` switch (shown only when a twin exists) picks between them via `displaySrc(chart)`, persisted as `rn_cell_mode`. Folders starting with `_` are never packs.
+- The switch sits on the right end of the chart image's own 48px header bar. It lives inside `#zoom-wrapper`, is positioned and scaled by `positionCellSwitch()`, and stops its touch/click events so the chart area's tap-to-close doesn't fire.
+- **`.nojekyll` must stay in the repo root.** Without it, GitHub Pages (Jekyll) silently skips folders starting with `_`, and `_raise/` returns 404 on the iPad.
 - Frequency annotations stay keyed to the call-% `chart.src`.
 
 **Tab groups:** at a facing branch point, the branch tabs (e.g. "4B 24bb") get `.tab-alt`, a warm tint with a gap before the group, so they read as a different decision from the faced-3B-size tabs.
