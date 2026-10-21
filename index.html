@@ -2206,23 +2206,30 @@ function facingDefaultSize(point) {
   return sized ? sized.label.replace(/bb$/i, "bb") : null;
 }
 
+// The branch a point follows when nothing is chosen or starred: data.js
+// defaultBranches (if that folder is loaded), else the pack's own charts
+function defaultBranchOf(point) {
+  const folder = getCurrentPack()?.defaultBranches?.[pointKey(point)];
+  return folder && branchesAt(point).includes(folder) ? folder : "base";
+}
+
 // One choice per branch at a point (for the capsule and the trail menus). `size` is
-// the bet size it stands for; a facing point's base option is marked "(default)".
+// the bet size it stands for; at a facing point the default option is marked
+// "(default)" since the pack's own tabs there carry the faced bet's size instead.
 function pointOptions(point) {
   const facing = isFacingPoint(point);
+  const def = defaultBranchOf(point);
   const seen = new Set();
   const options = [];
   for (const c of pointCharts(point)) {
     if (seen.has(c.branch)) continue;
     seen.add(c.branch);
-    if (c.branch === "base") {
-      const size = facing ? facingDefaultSize(point) : c.label;
-      options.push({ branch: "base", size,
-                     label: facing ? (size ? `${size} (default)` : "Default") : c.label });
-    } else {
-      const size = window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
-      options.push({ branch: c.branch, size, label: size });
-    }
+    const size = c.branch === "base"
+      ? (facing ? facingDefaultSize(point) : c.label)
+      : window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
+    const label = facing && c.branch === def ? (size ? `${size} (default)` : "Default")
+                : size || "Original";
+    options.push({ branch: c.branch, size, label, isDefault: c.branch === def });
   }
   return options;
 }
@@ -2236,7 +2243,7 @@ function resolvedBranch(path) {
   if (chosen) return chosen;
   const preferred = getDefaultSizeLabel(getSizeKey(point));
   const hit = preferred && pointCharts(point).find(c => c.label === preferred);
-  return hit ? hit.branch : "base";
+  return hit ? hit.branch : defaultBranchOf(point);
 }
 
 // Branch folder whose charts replace the pack's own for this path, or null
@@ -2329,8 +2336,10 @@ function getPreferredVariantIndex(node) {
     const i = chosen ? charts.findIndex(c => c.branch === chosen)
             : starred ? charts.findIndex(c => c.label === starred) : -1;
     if (i >= 0) return i;
-    const tab = packDefaultTab(nodePath, charts);
-    return tab >= 0 ? tab : Math.max(0, charts.findIndex(c => c.branch === "base"));
+    const def = defaultBranchOf(point);
+    const defIndex = def !== "base" ? charts.findIndex(c => c.branch === def) : -1;
+    if (defIndex >= 0) return defIndex;
+    return baseTabIndex(nodePath, charts);
   }
   const selectedId = state.metadataSelections[metadataSelectionKey(node.path || [])];
   if (selectedId !== undefined) {
@@ -2342,6 +2351,12 @@ function getPreferredVariantIndex(node) {
   if (!preferred) return Math.max(0, packDefaultTab(node.path || [], charts));
   const idx = charts.findIndex(c => c.label === preferred);
   return idx >= 0 ? idx : 0;
+}
+
+// The pack's own chart to show at a branch point: its default tab, else its first
+function baseTabIndex(path, charts) {
+  const tab = packDefaultTab(path, charts);
+  return tab >= 0 ? tab : Math.max(0, charts.findIndex(c => c.branch === "base"));
 }
 
 // The pack's built-in default tab for a path (data.js defaultTabs), or -1
@@ -4105,8 +4120,16 @@ function renderModal() {
   const atPoint = !!point && samePath(point, navPath);
   if (chart?.branch && atPoint) chooseBranch(point, chart.branch);
 
-  const activeTitle = chart?.metadata?.title || state.activeNode.title;
-  renderModalTitle(activeTitle, variantLabel);
+  // At a facing branch point the pack's tabs are named by the faced bet ("BTN vs SB · 3B
+  // 11bb"); a branch chart uses the same title (its own 4B size is in the trail)
+  let activeTitle = chart?.metadata?.title || state.activeNode.title;
+  let titleLabel  = variantLabel;
+  if (atPoint && isFacingPoint(point) && chart?.metadata) {
+    activeTitle = state.activeNode.title || activeTitle;
+    const faced = (chart.metadata.navigationHistory || []).slice(-1)[0];
+    titleLabel  = window.RANGE_NAVIGATOR_CORE.formatBb(faced?.toBb);
+  }
+  renderModalTitle(activeTitle, titleLabel);
   document.getElementById("modal-filename").textContent = chart ? chart.src.split("/").pop() : "";
 
   // Size tabs as ▾ menus on the trail step they describe (tap the red size to switch).
@@ -4123,9 +4146,9 @@ function renderModal() {
   if (atPoint) {
     sizeMenus.push({ step: last, options: pointOptions(point).map(o => ({
       label: o.label, on: o.branch === chart?.branch,
-      pick: () => selectVariant(o.branch === "base" && chart?.branch === "base"
-        ? state.activeVariantIndex
-        : charts.findIndex(c => c.branch === o.branch)),
+      pick: () => selectVariant(o.branch !== "base" ? charts.findIndex(c => c.branch === o.branch)
+        : chart?.branch === "base" ? state.activeVariantIndex
+        : baseTabIndex(navPath, charts)),
     })) });
     if (isFacingPoint(point) && chart?.branch === "base") {
       tabMenu(last - 1, sizeTabs.filter(t => t.branch === "base"));

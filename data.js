@@ -142,7 +142,9 @@ const PACKS = [
       { folder: "6max_22_3b6.5", at: "ip3bet" },
       { folder: "6max_22_3b8",   at: "ip3bet" },
       { folder: "6max_22_3b9",   at: "ip3bet" },
-      // BTN 4-bet size vs SB's / BB's 3-bet (pack default: 22bb vs SB, 24bb vs BB)
+      // BTN 4-bet size vs SB's / BB's 3-bet (pack's own charts: 22bb vs SB, 24bb vs BB)
+      // 4b23 = 22.99bb vs SB from "6max 2.2-7 CC GG NL500 Rake 50rakeback" (BTN|SB|BTN lines only)
+      { folder: "6max_22_4b23",  at: [["BTN","SB","BTN"]] },
       { folder: "6max_22_4b24",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
       { folder: "6max_22_4b25",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
       { folder: "6max_22_4b26",  at: [["BTN","SB","BTN"], ["BTN","BB","BTN"]] },
@@ -156,6 +158,11 @@ const PACKS = [
     defaultTabs: {
       "BTN|SB|BTN": "11bb",   // BTN vs SB's 3-bet: SB 3-bets 11bb by default
       "BTN|BB|BTN": "12bb",   // BTN vs BB's 3-bet: BB 3-bets 12bb by default
+    },
+    // ── Which size branch a hand follows when you haven't chosen or starred one
+    //    (path → sizeBranches folder; otherwise the pack's own charts)
+    defaultBranches: {
+      "BTN|SB|BTN": "6max_22_4b23",   // BTN 4-bets 23bb vs SB by default
     },
 
     // ── Double-tap defaults: overview opened when a position is double-tapped

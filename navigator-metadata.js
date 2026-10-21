@@ -3,10 +3,11 @@
 (function (root) {
   "use strict";
 
+  // One decimal at most: solver sizes like 22.99 or 21.998 read as 23bb / 22bb
   function formatBb(value) {
     const number = Number(value);
     if (!Number.isFinite(number)) return null;
-    return `${number.toFixed(6).replace(/\.?0+$/, "")}bb`;
+    return `${number.toFixed(1).replace(/\.0$/, "")}bb`;
   }
 
   function chartLabel(record) {
