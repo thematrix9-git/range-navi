@@ -151,6 +151,13 @@ const PACKS = [
       { folder: "6max_22_c4b25", at: [["BTN","SB","BB"]] },
     ],
 
+    // ── Which size tab a chart opens on when you haven't starred one
+    //    (path → tab label; otherwise the first tab)
+    defaultTabs: {
+      "BTN|SB|BTN": "11bb",   // BTN vs SB's 3-bet: SB 3-bets 11bb by default
+      "BTN|BB|BTN": "12bb",   // BTN vs BB's 3-bet: BB 3-bets 12bb by default
+    },
+
     // ── Double-tap defaults: overview opened when a position is double-tapped
     //    with nothing else in the path. Can be overridden per-pack in the app.
     defaultOverviews: {

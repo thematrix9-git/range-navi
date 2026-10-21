@@ -1703,6 +1703,12 @@
           <span>Wide CC / 3B buttons</span>
         </label>
       </div>
+      <div class="setting-row">
+        <label class="setting-toggle">
+          <input type="checkbox" id="rng-header-toggle">
+          <span>Show RNG</span>
+        </label>
+      </div>
     </div>
     <div class="toolbar">
       <div class="format-picker" id="format-picker">
@@ -2190,7 +2196,18 @@ function pointCharts(point) {
   return [...base, ...extra].sort((a, b) => sizeNumber(a.label) - sizeNumber(b.label));
 }
 
-// One choice per branch at a point (for the capsule and the trail menus)
+// A facing point's own default size isn't in its filenames (those carry the faced
+// bet), but the next chart is named after it: BTN-SB_3B-* is followed by
+// SB-BTN_4B-22BB.png → BTN's default 4-bet is 22bb.
+function facingDefaultSize(point) {
+  const next = [...point, point[point.length - 2]];
+  const sized = getChartsForNodeBase({ path: next, imageFolder: pathPos(next[next.length - 1]) })
+    .find(c => !c.missing && /^\d/.test(c.label || ""));
+  return sized ? sized.label.replace(/bb$/i, "bb") : null;
+}
+
+// One choice per branch at a point (for the capsule and the trail menus). `size` is
+// the bet size it stands for; a facing point's base option is marked "(default)".
 function pointOptions(point) {
   const facing = isFacingPoint(point);
   const seen = new Set();
@@ -2198,10 +2215,14 @@ function pointOptions(point) {
   for (const c of pointCharts(point)) {
     if (seen.has(c.branch)) continue;
     seen.add(c.branch);
-    const label = c.branch === "base"
-      ? (facing ? "Default" : c.label)
-      : window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
-    options.push({ branch: c.branch, label });
+    if (c.branch === "base") {
+      const size = facing ? facingDefaultSize(point) : c.label;
+      options.push({ branch: "base", size,
+                     label: facing ? (size ? `${size} (default)` : "Default") : c.label });
+    } else {
+      const size = window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
+      options.push({ branch: c.branch, size, label: size });
+    }
   }
   return options;
 }
@@ -2236,13 +2257,11 @@ function branchNode(folder, path) {
 }
 
 // Size of the branch point's step on the chosen branch (seat label / trail), or null
-// to let the pack's own size logic decide (a facing point's "Default")
 function branchSizeLabel(path) {
   const point = branchPointOf(path);
   if (!point) return null;
   const b = resolvedBranch(path);
-  const opt = pointOptions(point).find(o => o.branch === b);
-  return opt && opt.label !== "Default" ? opt.label : null;
+  return pointOptions(point).find(o => o.branch === b)?.size || null;
 }
 
 // ── Per-node "default situation" (C4B vs Squeeze) ─────────────────
@@ -2310,7 +2329,8 @@ function getPreferredVariantIndex(node) {
     const i = chosen ? charts.findIndex(c => c.branch === chosen)
             : starred ? charts.findIndex(c => c.label === starred) : -1;
     if (i >= 0) return i;
-    return Math.max(0, charts.findIndex(c => c.branch === "base"));
+    const tab = packDefaultTab(nodePath, charts);
+    return tab >= 0 ? tab : Math.max(0, charts.findIndex(c => c.branch === "base"));
   }
   const selectedId = state.metadataSelections[metadataSelectionKey(node.path || [])];
   if (selectedId !== undefined) {
@@ -2319,10 +2339,20 @@ function getPreferredVariantIndex(node) {
   }
   const sizeKey = getSizeKey(node.path || []);
   const preferred = getDefaultSizeLabel(sizeKey);
-  if (!preferred) return 0;
+  if (!preferred) return Math.max(0, packDefaultTab(node.path || [], charts));
   const idx = charts.findIndex(c => c.label === preferred);
   return idx >= 0 ? idx : 0;
 }
+
+// The pack's built-in default tab for a path (data.js defaultTabs), or -1
+function packDefaultTab(path, charts) {
+  const label = getCurrentPack()?.defaultTabs?.[path.join("|")];
+  if (!label) return -1;
+  return charts.findIndex(c => c.branch !== undefined ? (c.branch === "base" && sameSize(c.label, label))
+                                                      : sameSize(c.label, label));
+}
+
+const sameSize = (a, b) => String(a || "").toLowerCase() === String(b || "").toLowerCase();
 
 // ── Which positions show CC/3B split button ───────────────────────
 // BTN: after UTG/MP/CO open.  SB: after UTG/MP/CO/BTN open.
@@ -3487,7 +3517,8 @@ function renderTable() {
       };
       if (useSplit) addSeg("split-cc", "Call", `${pos} call`, () => handlePositionTap(pos, "CC"));
       pickSizes.forEach(o => {
-        const label = String(o.label || "").replace(/bb$/i, "");
+        const num   = String(o.size || o.label || "").replace(/bb$/i, "");
+        const label = o.label.includes("(default)") ? `${num} def` : num;
         addSeg("split-3b", label, `${pos} ${o.label}`, () => {
           chooseBranch(pickPoint, o.branch);
           handlePositionTap(pos, useSplit ? "3B" : undefined);
@@ -3646,11 +3677,11 @@ function legacyStepSizes(path, activeLabel) {
     // A branch point's own step: the size this hand follows (a facing point's
     // "Default" falls through to the pack's own sizes)
     const prefixPoint = branchPointOf(prefix);
-    if (prefixPoint && samePath(prefixPoint, prefix)) {
+    if (prefixPoint && samePath(prefixPoint, prefix) && !isFacingPoint(prefixPoint)) {
       const label = branchSizeLabel(prefix);
       if (label) return label;
     }
-    const saved = getDefaultSizeLabel(getSizeKey(prefix));
+    const saved = getDefaultSizeLabel(getSizeKey(prefix)) || getCurrentPack()?.defaultTabs?.[prefix.join("|")];
     if (saved) return saved;
     const node  = findNode(prefix) || { path: prefix, imageFolder: pathPos(prefix[prefix.length - 1]) };
     const sized = getChartsForNode(node).find(c => c.label && c.label !== "Base");
@@ -3659,8 +3690,12 @@ function legacyStepSizes(path, activeLabel) {
   return path.map((_, i) => {
     // The step being faced by a re-entering hero takes the full chart's size
     if (i === last - 1 && isReentryStep(path, last)) return sizeOf(path);
-    // A re-entering hero's own response size isn't encoded in legacy filenames
-    if (i === last && isReentryStep(path, last)) return null;
+    // A re-entering hero's own response size isn't encoded in legacy filenames,
+    // except at a facing branch point, whose default size comes from the next chart
+    if (i === last && isReentryStep(path, last)) {
+      const pt = branchPointOf(path);
+      return pt && samePath(pt, path) ? branchSizeLabel(path) : null;
+    }
     // A new actor's own action: its own node's sized charts
     if (!isReentryStep(path, i)) return sizeOf(path.slice(0, i + 1));
     // A re-entering step mid-path (e.g. the 4-bet in a longer line): described by
@@ -4632,12 +4667,18 @@ function initRng() {
   document.addEventListener("touchstart", closeRngPanel, { passive: true });
   document.addEventListener("click",      closeRngPanel);
 
-  document.getElementById("rng-show-toggle").addEventListener("change", e => {
-    rng.show = e.target.checked;
+  // Show RNG: one switch in ⚙ Settings, one in the top-left toggles; kept in sync
+  const headerToggle = document.getElementById("rng-header-toggle");
+  const setShow = show => {
+    rng.show = show;
+    headerToggle.checked = show;
+    document.getElementById("rng-show-toggle").checked = show;
     saveRngSettings();
     renderRng();
     scheduleRngTimer();
-  });
+  };
+  document.getElementById("rng-show-toggle").addEventListener("change", e => setShow(e.target.checked));
+  headerToggle.addEventListener("change", e => setShow(e.target.checked));
   document.querySelectorAll("#rng-mode-seg button").forEach(b => b.addEventListener("click", () => {
     rng.mode = b.dataset.mode;
     saveRngSettings();
@@ -4653,6 +4694,7 @@ function initRng() {
 
   document.addEventListener("visibilitychange", scheduleRngTimer);
 
+  headerToggle.checked = rng.show;
   renderRng();
   rollRng();
 }

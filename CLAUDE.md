@@ -349,6 +349,13 @@ Static, hand-authored documentation rendered as HTML (`#help-modal`) — the nam
   - Deeper in the hand, the point step lists only the sizes this exact line exists in (`lineSizeOptions` / `toggleSizeMenu`).
   - Elsewhere, the step the tabs describe lists them (`sizeMenus` in `renderModal`).
 
+**Defaults (2026-10-21):**
+- `data.js` `defaultTabs` (path → tab label, e.g. `"BTN|SB|BTN": "11bb"`) sets which tab a chart opens on when nothing is starred (`packDefaultTab`). The breadcrumb uses it too.
+- At a facing point, the base option's real size comes from the next chart's filename (`facingDefaultSize`): `SB-BTN_4B-22BB` → "22bb (default)", shown as "22 def" in the capsule.
+- The pack's BTN-vs-blinds charts came from a sim that isn't on this machine. The GG 2.2 sims show 22.99bb, so the user may want that file renamed to 23BB.
+
+**Show RNG** also has a switch in the top-left toggles (`#rng-header-toggle`), kept in sync with the one in ⚙ Settings.
+
 **Hold-to-pick:** holding a seat for `HOLD_MS` (1s) replaces it with a capsule when its next tap would land on a branch point with 2+ options. That covers an IP seat after an open, BTN re-entering after a blind 3-bets, and BB after SB 3-bets. The capsule has one red segment per size, after a green Call where cold-calling is allowed. `attachHoldToPick` sets this up. `holdFired`/`swallowClickUntil` drop the click from lifting the finger, because the seat is replaced while the finger is still down. A felt tap closes the capsule. The ⚙ setting "Hold a seat to pick a size" (`rn_hold_size_picker`, default on) turns hold-to-pick off; taps then work exactly as before, and the sizes are still reachable through the chart's tabs.
 
 **Legacy 2.2bb source sim:** `images/6max_22` was generated from `HRC Pio Converter\6max 2.2x 2025 HRC 7bb NL500.zip`. This was confirmed by re-rendering a chart and matching it exactly; the "6max 2.2-7 CC GG…" exports are a different sim. On 2026-10-20 the 28 "facing a cold 4-bet" charts it lacked (`A-B-C_C4B`, `B-A-C_C4B`) were rendered from that sim with the exporter's `render_node_png` + `LEGACY_IOS` profile. Six of those lines had been falling back to the `_Squeeze` chart from the squeeze pot.
