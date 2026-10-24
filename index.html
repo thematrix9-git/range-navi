@@ -2234,7 +2234,7 @@ function pointCharts(point) {
   const base = getChartsForNodeBase({ path: point, imageFolder: pathPos(point[point.length - 1]) })
     .filter(c => !c.missing)
     .map(c => ({ ...c, branch: "base",
-                 label: (c.label && c.label !== "Base") ? c.label
+                 label: (c.label && c.label !== "Base") ? c.label.replace(/bb$/i, "bb")
                       : (!facing && point.length === 2 && pack?.baseSizeLabel) || c.label || "Default" }));
   const extra = branchesAt(point).flatMap(f => branchCharts(f, point)).map(c => facing
     ? { ...c, label: `${c.metadata?.decision?.primaryAction?.actionLabel || ""} ${c.label}`.trim() }
@@ -2271,14 +2271,18 @@ function pointOptions(point) {
   for (const c of pointCharts(point)) {
     if (seen.has(c.branch)) continue;
     seen.add(c.branch);
-    const size = c.branch === "base"
+    const raw = c.branch === "base"
       ? (facing ? facingDefaultSize(point) : c.label)
       : window.RANGE_NAVIGATOR_CORE.formatBb(c.metadata?.decision?.primaryAction?.sizesBb?.[0]) || c.label;
+    const size = raw ? raw.replace(/bb$/i, "bb") : raw;
     const label = facing && c.branch === def ? (size ? `${size} (default)` : "Default")
                 : size || "Original";
     options.push({ branch: c.branch, size, label, isDefault: c.branch === def });
   }
-  return options;
+  // A branch sim of the default's own size (4b24 vs BB's 3-bet, where the pack
+  // already 4-bets 24bb) would list that size twice: keep only the default
+  const defSize = options.find(o => o.isDefault)?.size;
+  return options.filter(o => o.isDefault || !defSize || o.size !== defSize);
 }
 
 // The branch this hand follows at its branch point. Not chosen yet → the starred
