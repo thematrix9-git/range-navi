@@ -3744,15 +3744,23 @@ function legacyStepSizes(path, activeLabel) {
       const label = branchSizeLabel(prefix);
       if (label) return label;
     }
-    const saved = getDefaultSizeLabel(getSizeKey(prefix)) || getCurrentPack()?.defaultTabs?.[prefix.join("|")];
+    // defaultTabs of the chart facing this step also name its size: "BTN|BB|BTN": "12bb"
+    // is BB's 3-bet vs BTN
+    const tabs  = getCurrentPack()?.defaultTabs || {};
+    const faced = prefix.length > 1 ? [...prefix, prefix[prefix.length - 2]].join("|") : null;
+    const saved = getDefaultSizeLabel(getSizeKey(prefix)) || tabs[prefix.join("|")] || (faced && tabs[faced]);
     if (saved) return saved;
     const node  = findNode(prefix) || { path: prefix, imageFolder: pathPos(prefix[prefix.length - 1]) };
     const sized = getChartsForNode(node).find(c => c.label && c.label !== "Base");
     return sized ? sized.label : null;
   };
-  return path.map((_, i) => {
-    // The step being faced by a re-entering hero takes the full chart's size
-    if (i === last - 1 && isReentryStep(path, last)) return sizeOf(path);
+  // Filenames mix "7BB" / "7bb"; the trail always shows "7bb"
+  return path.map((_, i) => stepSize(i)).map(s => s ? s.replace(/bb$/i, "bb") : s);
+
+  function stepSize(i) {
+    // The step being faced by a re-entering hero takes the full chart's size. An
+    // unsized chart (e.g. CO-BTN_3B.png) faces that step's default size (BTN 3B 7bb).
+    if (i === last - 1 && isReentryStep(path, last)) return sizeOf(path) || sizeOf(path.slice(0, i + 1));
     // A re-entering hero's own response size isn't encoded in legacy filenames,
     // except at a facing branch point, whose default size comes from the next chart
     if (i === last && isReentryStep(path, last)) {
@@ -3765,7 +3773,7 @@ function legacyStepSizes(path, activeLabel) {
     // the next node, where the following player faces it
     if (i + 1 <= last && isReentryStep(path, i + 1)) return sizeOf(path.slice(0, i + 2));
     return null;
-  });
+  }
 }
 
 // sizeMenus: [{ step, options: [{ label, on, pick }] }] — ▾ menus for the open chart's tabs
